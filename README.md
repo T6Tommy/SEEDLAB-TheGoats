@@ -1,6 +1,9 @@
 #SEED Lab Group 7 - The Goats
+
 ##About this repository
-#The Goats
+
+###The Goats
+
 This is the repository for EENG 350 A, Spring 2022, Group 7, otherwise known as
 The Goats.  Our group members are:
 
