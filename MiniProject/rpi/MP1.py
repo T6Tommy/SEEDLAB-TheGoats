@@ -71,7 +71,6 @@ while True:
     ratio = w1 / w
     angle = angle * ratio
     angle = round(angle,2)
-<<<<<<< HEAD
     #x,y coordinates
     x = round(xy[0],2)
     y = round(xy[1],2)
@@ -84,6 +83,7 @@ while True:
     E = 0
 
     h = height / 2
+    location = 0
     
     #Prints out the angle or "No Marker Found" if no object
     if xy[0] == 0 and xy[1] == 0:
@@ -112,7 +112,6 @@ while True:
     else:
         None
     
-=======
     #Displays live video
     cv.imshow('frame',res)
     #Prints out the angle or "No Marker Found" if no object
@@ -120,7 +119,6 @@ while True:
         print("No Marker Found")
     else:
         print(angle)
->>>>>>> 35d871fdc234ede44e92cbf377b479b2f94a054d
     #To end live video
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
