@@ -24,6 +24,36 @@ pi = 3.141592653589793
 ada = board.I2C()
 smb = SMBus(1) #initialize i2c
 
+def MoveWheel (N, S, E, W):
+    lcd.clear();
+    lcd.color = [100, 0, 100] # Set the color to purple
+
+    message = 0
+
+    if(N and W):
+        message = 1
+        lcd.message = "0"
+    if(N and E):
+        message = 2
+        lcd.message = "pi/2"
+    if(S and E):
+        message = 3
+        lcd.message = "pi"
+    if(S and W):
+        message = 4
+        lcd.message = "3pi/2"
+    try:
+       smb.write_byte_data(0x04, 0, message) # Send the angle code.
+       status = smb.read_byte_data(0x04, 0) # Recieve status code from arduino.
+       if (status is 0): #status 0 corresponds to a successful turn
+           print("The wheel has successfully turned with message %i" % message)
+       else: # Any other value corresponds to some error we don't know about:
+           print("An unspecified error was encountered while turning with message %i " % message)
+    except IOError: # If there's no I2C let the user know:
+        print("Cannot communicate with Arduino.")
+    else: print ("Please enter an angle from -2 pi to 2 pi radians")
+
+'''
 def MoveWheel (angle):
     lcd.clear();
     lcd.color = [100, 0, 100] # Set the color to purple
@@ -48,18 +78,22 @@ def MoveWheel (angle):
             except IOError: # If there's no I2C let the user know:
                 print("Cannot communicate with Arduino.")
     else: print ("Please enter an angle from -2 pi to 2 pi radians")
+'''
 
 lcd = character_lcd.Character_LCD_RGB_I2C(ada, lcd_columns, lcd_rows)
 
 def main():
     while(True):
         try: # Prompt user input
-            angle = float(input("Enter an angle from -2 pi to 2 pi radians to be sent to the Arduino:"))
+            N = int(input("N"))
+            S = int(input("S"))
+            E = int(input("E"))
+            W = int(input("W"))
         except TypeError: # The user did not enter an integer!
-            print ("Invalid decimal value!")
+            print ("Invalid integer value!")
             continue
         # Prompt arduino to move the wheel to the specified angle:
-        MoveWheel(angle)
+        MoveWheel(N, S, E, W)
 
 if __name__ == "__main__":
         main()

@@ -4,6 +4,7 @@
 #All of the imported modules
 import numpy as np
 import cv2 as cv
+import i2c
 from picamera import PiCamera
 from time import sleep
 from matplotlib import pyplot as plt
@@ -76,7 +77,7 @@ while True:
 
     h = height / 2
     location = 0
-    
+
     #Prints out the angle or "No Marker Found" if no object
     if xy[0] == 0 and xy[1] == 0:
         print("No Marker Found")
@@ -103,13 +104,18 @@ while True:
         print("Marker is at position 3pi/2")
     else:
         None
-    
+
+    i2c.MoveWheel(N,S,E,W)
+
     #Displays live video
     cv.imshow('frame',res)
+<<<<<<< HEAD
 
+=======
+>>>>>>> fcfd5cf197e1721ae2e76b3ae8a31e911d12e00e
     #To end live video
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
-    
+
 cap.release()
-cv.destroyAllWindows()
+v.destroyAllWindows()
