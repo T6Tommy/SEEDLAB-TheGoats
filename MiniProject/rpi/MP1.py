@@ -8,6 +8,7 @@ from picamera import PiCamera
 from time import sleep
 from matplotlib import pyplot as plt
 
+<<<<<<< HEAD
 sleep(2)
 PiCamera.shutter_speed= PiCamera.exposure_speed
 PiCamera.exposure_mode = 'off'
@@ -16,6 +17,8 @@ PiCamera.awb_mode = 'off'
 PiCamera.awb_gains = g
 
 
+=======
+>>>>>>> 35d871fdc234ede44e92cbf377b479b2f94a054d
 #Start live video
 cap = cv.VideoCapture(0)
 #Checks to see if camera is working
@@ -39,7 +42,11 @@ while True:
     #Converts frame from BGR format to HSV
     hsv = cv.cvtColor(img,cv.COLOR_BGR2HSV)
     #Uppper and Lower bounds for color detection
+<<<<<<< HEAD
     lower = np.array([100,150,10])
+=======
+    lower = np.array([80,130,20])
+>>>>>>> 35d871fdc234ede44e92cbf377b479b2f94a054d
     upper = np.array([140,255,255])
     mask = cv.inRange(hsv, lower, upper) #Mask for color detection
     #Frame to display only yellow objects and black everywhere else
@@ -64,6 +71,7 @@ while True:
     ratio = w1 / w
     angle = angle * ratio
     angle = round(angle,2)
+<<<<<<< HEAD
     #x,y coordinates
     x = round(xy[0],2)
     y = round(xy[1],2)
@@ -104,6 +112,15 @@ while True:
     else:
         None
     
+=======
+    #Displays live video
+    cv.imshow('frame',res)
+    #Prints out the angle or "No Marker Found" if no object
+    if xy[0] == 0 and xy[1] == 0:
+        print("No Marker Found")
+    else:
+        print(angle)
+>>>>>>> 35d871fdc234ede44e92cbf377b479b2f94a054d
     #To end live video
     if cv.waitKey(1) & 0xFF == ord('q'):
         break

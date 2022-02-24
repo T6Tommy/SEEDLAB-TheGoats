@@ -3,19 +3,32 @@
 """
 Created on Wed Feb 16 11:39:39 2022
 
-Description:    i2c.py takes an integer angle input (radians) and sends a corresponding code
-                to an arduino peripheral via I2C.
+Description:    i2c.py takes a floating point angle input (radians) and sends a
+                corresponding code to an arduino peripheral via I2C. The resulting
+                angle is displayed on an LCD display.
 
 @author: Paul Sampson
 """
 
+import time
+import board
+import adafruit_character_lcd.character_lcd_rgb_i2c as character_lcd
+
 from smbus import SMBus
+
+lcd_columns = 16
+lcd_rows = 2
 
 pi = 3.141592653589793
 
-bus = SMBus(1) #initialize i2c
+ada = board.I2C()
+smb = SMBus(1) #initialize i2c
 
 def MoveWheel (angle):
+    lcd.clear();
+    lcd.color = [100, 0, 100] # Set the color to purple
+    lcd.message = str(angle)
+
     if(-(2*pi) <= angle < 0): # Add 2 pi to negative angles
         angle += (2*pi)
     if(0 <= angle <= 2*pi): # Only accept angles from 0 to 2pi radians.
@@ -26,23 +39,24 @@ def MoveWheel (angle):
             # Let user know what we're doing:
             print ("Sending command %i to turn the wheel to %f " % (angle_code, angle))
             try:
-                bus.write_byte_data(0x04, 0, angle_code) # Send the angle code.
-                status = bus.read_byte_data(0x04, 0) # Recieve status code from arduino.
+                smb.write_byte_data(0x04, 0, angle_code) # Send the angle code.
+                status = smb.read_byte_data(0x04, 0) # Recieve status code from arduino.
                 if (status is 0): #status 0 corresponds to a successful turn
                     print("The wheel has successfully turned to %f." % angle)
                 else: # Any other value corresponds to some error we don't know about:
-                    print("An unspecified error was encountered while turning
-                            to %f" % angle)
+                    print("An unspecified error was encountered while turning to %f" % angle)
             except IOError: # If there's no I2C let the user know:
                 print("Cannot communicate with Arduino.")
     else: print ("Please enter an angle from -2 pi to 2 pi radians")
 
+lcd = character_lcd.Character_LCD_RGB_I2C(ada, lcd_columns, lcd_rows)
+
 def main():
     while(True):
         try: # Prompt user input
-            angle = int(input("Enter an angle from -2 pi to 2 pi radians to be sent to the Arduino:"))
+            angle = float(input("Enter an angle from -2 pi to 2 pi radians to be sent to the Arduino:"))
         except TypeError: # The user did not enter an integer!
-            print ("Invalid integer value!")
+            print ("Invalid decimal value!")
             continue
         # Prompt arduino to move the wheel to the specified angle:
         MoveWheel(angle)
