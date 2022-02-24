@@ -1,4 +1,7 @@
-#define motor_pin = 11; // PWM wave outputs to pin 11
+#include <Wire.h>
+
+#define motor_pin 11 // PWM wave outputs to pin 11
+#define self_addr 0x04
 
 void setup() {
   Serial.begin(57600);
