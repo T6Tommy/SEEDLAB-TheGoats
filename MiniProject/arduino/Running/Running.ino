@@ -8,10 +8,20 @@ Encoder myEnc(3, 4);
 int PWM_Pin = 9; // PWM wave outputs to pin 9
 
 void setup() {
-  Serial.begin(250000);
+  Serial.begin(57600);
+
   pinMode(PWM_Pin, OUTPUT);
   analogWrite(PWM_Pin,0);
   md.init();
+
+  analogWrite(motor_pin,0);
+
+  Wire.begin(self_addr); // Initialize i2c communication
+
+  // define callbacks for i2c communication
+  Wire.onReceive(receiveData);
+  Wire.onRequest(sendData);
+
 }
 
 long oldPosition  = -999;
