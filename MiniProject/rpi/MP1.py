@@ -106,11 +106,6 @@ while True:
     
     #Displays live video
     cv.imshow('frame',res)
-    #Prints out the angle or "No Marker Found" if no object
-    if xy[0] == 0 and xy[1] == 0:
-        print("No Marker Found")
-    else:
-        print(angle)
     #To end live video
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
