@@ -39,7 +39,7 @@ while True:
     #Converts frame from BGR format to HSV
     hsv = cv.cvtColor(img,cv.COLOR_BGR2HSV)
     #Uppper and Lower bounds for color detection
-    lower = np.array([100,150,10])
+    lower = np.array([100,150,15])
     upper = np.array([140,255,255])
     mask = cv.inRange(hsv, lower, upper) #Mask for color detection
     #Frame to display only yellow objects and black everywhere else
@@ -109,13 +109,10 @@ while True:
 
     #Displays live video
     cv.imshow('frame',res)
-<<<<<<< HEAD
 
-=======
->>>>>>> fcfd5cf197e1721ae2e76b3ae8a31e911d12e00e
     #To end live video
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
 
 cap.release()
-v.destroyAllWindows()
+cv.destroyAllWindows()

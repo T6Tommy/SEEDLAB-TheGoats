@@ -44,14 +44,13 @@ def MoveWheel (N, S, E, W):
         lcd.message = "3pi/2"
     try:
        smb.write_byte_data(0x04, 0, message) # Send the angle code.
-       status = smb.read_byte_data(0x04, 0) # Recieve status code from arduino.
-       if (status is 0): #status 0 corresponds to a successful turn
-           print("The wheel has successfully turned with message %i" % message)
-       else: # Any other value corresponds to some error we don't know about:
-           print("An unspecified error was encountered while turning with message %i " % message)
+       #status = smb.read_byte_data(0x04, 0) # Recieve status code from arduino.
+       print("The wheel has successfully turned with message %i" % message)
+       #else: # Any other value corresponds to some error we don't know about:
+       #    print("An unspecified error was encountered while turning with message %i " % message)
     except IOError: # If there's no I2C let the user know:
         print("Cannot communicate with Arduino.")
-    else: print ("Please enter an angle from -2 pi to 2 pi radians")
+    #else: print ("Please enter an angle from -2 pi to 2 pi radians")
 
 '''
 def MoveWheel (angle):
@@ -81,6 +80,7 @@ def MoveWheel (angle):
 '''
 
 lcd = character_lcd.Character_LCD_RGB_I2C(ada, lcd_columns, lcd_rows)
+
 
 def main():
     while(True):
