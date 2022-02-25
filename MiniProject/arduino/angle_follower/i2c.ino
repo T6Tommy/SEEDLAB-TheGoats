@@ -15,6 +15,8 @@ uint8_t message[block_mx]; //A data buffer for outgoing messages
 
 /**********************I2C Communication Methods**************************/
 
+double theta_target = 0;
+
 void receiveData(int byteCount) {
   Serial.print("data recieved:");
   uint8_t i = 0; //Index: tracks the used space in the message
@@ -27,25 +29,24 @@ void receiveData(int byteCount) {
      i++; //increment index for next value
   }
   Serial.println(' ');
-  recieved_length = i;
+  //recieved_length = i;
+  Serial.println(i);
   if(recieved_length == 0) {
-    delay(2000);
-    sendData(); //If there is 1 value in the buffer, we are being asked to send data.
+    delay(200);
+    //sendData(); //If there is 1 value in the buffer, we are being asked to send data.
   }
-  else {
-    if(recieved[0] = 0 && recieved_length == 1) {
+    if(i == 2) {
       theta_target = recieved[1]*1.57079632679;
       Serial.print("Turning the wheel to ");
       Serial.print(theta_target);
       Serial.println(" radians.");
     }
-  }
 }
 
 // sendData sends the arduino's status back to the Raspberry Pi. Currently it only
 // sends a 0 for "OK"
 void sendData() {
-  message[0] = 0x00
+  message[0] = 0x00;
   Serial.print("Sending data: ");
   for(int i = 0; i < message_length; i++) {
     Wire.write(message[i]); // send the contents of the message buffer to the i2c controller
