@@ -7,13 +7,13 @@
 This is the repository for EENG 350 B, Spring 2022, Group 7, otherwise known as
 The Goats.  Our group members are:
 
-- Aaron Hsu
+- Aaron Hsu - Computer Vision
 
-- Josie Dudden
+- Josie Dudden - Simulation/Control
 
-- Thomas MacDougall
+- Thomas MacDougall - Localization
 
-- Paul Sampson
+- Paul Sampson - System Intergration
 
 #How the repository is structured.
 
