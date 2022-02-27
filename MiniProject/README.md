@@ -22,7 +22,7 @@ The first file is called "arduino" for the 3 files of Arduino code used:
 
 - "angle_follower" - 
 
--"motor_sim" -
+- "motor_sim" -
 
 The second file is "rpi" for the 2 files of Python code used on the Raspberry Pi:
 
