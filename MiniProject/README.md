@@ -14,7 +14,7 @@
 
 - Thomas MacDougall - Localization
 
-## 
+### Directory Structure:
 
 This repository is for the Mini Project and is seperated into two main folders, "arduino," which contains arduino sketches, and "rpi," which contains python code to be run on the Raspberry Pi.
 
