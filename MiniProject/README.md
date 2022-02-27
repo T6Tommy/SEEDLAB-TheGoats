@@ -1,10 +1,12 @@
-#SEED Lab Group 7 - The Goats
+# SEED Lab Group 7 - The Goats
 
-#EENG 350 B
+# Mini Project
 
-#Spring 2022
+## EENG 350 B
 
-Team Members:
+## Spring 2022
+
+### Team Members:
 
 - Josie Dudden - Simulation/Control
 
@@ -16,18 +18,16 @@ Team Members:
 
 This repository is for the Mini Project and is seperated into two main files.
 
-The first file is called "arduino" for the 3 files of Arduino code used:
+The two Arduino sketches are as follows:
 
-- "Running" - 
+- **"Running.ino"** - Contains the control system code and I2C handler method.  The control system occurs within the main Loop, while the I2C handler is in an ISR method called "recieveData."  The control system is a Proportional-Integral loop that takes in a rotary encoder value and regulates the average voltage level for a motor driver via the ATMEGA's built-in PWM controller.  The I2C handler is capable of taking in up to 32 bytes of data and stores the data in a byte array called "message."  There is also a method called "sendData" that was not used for the Mini Project.
 
-- "angle_follower" - 
-
-- "motor_sim" -
+- **"motor_sim.ino"** -  This sketch outputs a step response (time-delayed by 1 second) with a magnitude of 7 volts (PWM average) to the motor driver.  The sketch then monitors the resulting encoder data and records it onto the Serial console.
 
 The second file is "rpi" for the 2 files of Python code used on the Raspberry Pi:
 
-- "MP1.py" - This is the Python code for the Computer Vision Marker Detection Scheme.
+- **"MP1.py"** - This is the Python code for the Computer Vision Marker Detection Scheme.
 
-- "ic2.py" -
+- **"i2c.py"** - Takes in a quadrant (via four boolean values, N, S, E, W) and sends a code to the arduino via I2C which corresponds to an angle associated with the quadrant.  The angle is also displayed on the LCD display via the AdaFruit I2C LCD library.
 
 
