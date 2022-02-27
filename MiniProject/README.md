@@ -1,19 +1,33 @@
-Mini Project
-EENG 350
-SEED Lab
-Section B
+#SEED Lab Group 7 - The Goats
 
-Team: The Goats
-Members:
-Josie Dudden - Simulation/Control
-Aaron Hsu - Computer Vision
-Paul Sampson - System Integration
-Thomas MacDougall - Localization
+#EENG 350 B
 
-This repository is for the Mini Project and is seperated into two seperate files.
-The first file is Ardrino for the 3 files of Ardrino code used:
+#Spring 2022
 
+Team Members:
 
-The second file is rpi for the 2 files of Python code used on the Raspberry Pi:
+- Josie Dudden - Simulation/Control
+
+- Aaron Hsu - Computer Vision
+
+- Paul Sampson - System Integration
+
+- Thomas MacDougall - Localization
+
+This repository is for the Mini Project and is seperated into two main files.
+
+The first file is called "arduino" for the 3 files of Arduino code used:
+
+- "Running" - 
+
+- "angle_follower" - 
+
+-"motor_sim" -
+
+The second file is "rpi" for the 2 files of Python code used on the Raspberry Pi:
+
+- "MP1.py" - This is the Python code for the Computer Vision Marker Detection Scheme.
+
+- "ic2.py" -
 
 
