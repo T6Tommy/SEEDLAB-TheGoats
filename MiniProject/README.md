@@ -2,9 +2,7 @@
 
 # Mini Project
 
-## EENG 350 B
-
-## Spring 2022
+## EENG 350 B, Spring 2022
 
 ### Team Members:
 
@@ -16,7 +14,9 @@
 
 - Thomas MacDougall - Localization
 
-This repository is for the Mini Project and is seperated into two main files.
+## 
+
+This repository is for the Mini Project and is seperated into two main folders, "arduino," which contains arduino sketches, and "rpi," which contains python code to be run on the Raspberry Pi.
 
 The two Arduino sketches are as follows:
 
