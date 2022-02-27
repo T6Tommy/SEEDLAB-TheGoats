@@ -1,4 +1,5 @@
- #Aaron Hsu
+#Aaron Hsu
+#SEED Lab
 #MiniProject
 
 #All of the imported modules
@@ -9,6 +10,7 @@ from picamera import PiCamera
 from time import sleep
 from matplotlib import pyplot as plt
 
+#Auto White Balance
 sleep(2)
 PiCamera.shutter_speed= PiCamera.exposure_speed
 PiCamera.exposure_mode = 'off'
@@ -54,6 +56,7 @@ while True:
     img3 = cv.morphologyEx(img3, cv.MORPH_CLOSE, kernel)
     #Threshold to make frame binary
     ret,thresh1 = cv.threshold(img3,1,255,cv.THRESH_BINARY)
+    #Finds nonzeros
     nonzero = cv.findNonZero(thresh1)
     #Takes the mean of the array for coordinates
     xy = cv.mean(nonzero)
@@ -64,47 +67,57 @@ while True:
     ratio = w1 / w
     angle = angle * ratio
     angle = round(angle,2)
+    
     #x,y coordinates
     x = round(xy[0],2)
     y = round(xy[1],2)
-    #Displays live video
-    cv.imshow('frame',res)
-
+    
+    #Variable for North, South, West, East
     N = 0
     S = 0
     W = 0
     E = 0
-
+    #Variable for the halfway point of frame
     h = height / 2
-    location = 0
 
     #Prints out the angle or "No Marker Found" if no object
     if xy[0] == 0 and xy[1] == 0:
         print("No Marker Found")
+    #If the angle is negative, then it is on the East side of frame
     elif angle < 0:
         E = 1
+        #If y coordinate is more than h, it is on the South side
         if y > h:
             S = 1
+        #If y coordinate is less than h, it is on the North side
         elif y < h:
             N = 1
+    #If the angle is positive, then it is on the West side of frame
     elif angle > 0:
         W = 1
+        #If y coordinate is more than h, it is on the South side
         if y > h:
             S = 1
+        #If y coordinate is less than h, it is on the North side
         elif y < h:
             N = 1
-
+    
+    #If North East Quadrant, then position is 0
     if N == 1 and E == 1:
         print("Marker is at position 0")
+    #If North West Quadrant, then position is pi/2
     elif N == 1 and W == 1:
         print("Marker is at position pi/2")
+    #If South West Quadrant, then position is pi
     elif S == 1 and W == 1:
         print("Marker is at position pi")
+    #If South East Quadrant, then position is 3pi/2
     elif S == 1 and E == 1:
         print("Marker is at position 3pi/2")
     else:
         None
-
+    
+    #Sends values to i2c code
     i2c.MoveWheel(N,S,E,W)
 
     #Displays live video
@@ -113,6 +126,7 @@ while True:
     #To end live video
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
-
+      
+#Releases capture and closes live video
 cap.release()
 cv.destroyAllWindows()
