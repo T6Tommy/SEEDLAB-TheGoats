@@ -11,4 +11,5 @@ In this folder, "rpi", there are two sets of Python code used on the Raspberry P
 The first code is labeled, "MP1.py". This Python code is the marker detection scheme used with the Pi Camera to detect a marker of a certain color.
 For this mini project, the marker color is set to blue for blue masking tape.
 
-The second code is labeled, "ic2.py". 
+The second code is labeled, "i2c.py". This Python code takes in variables sent by the "MP1.py" to determine the quandrant the marker is in on the camera.
+It interprets this data to send to the Arduino for the position or angle the wheel needs to be in.
