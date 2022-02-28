@@ -3,8 +3,8 @@
 DualMC33926MotorShield md;
 
 #include <Wire.h>
-#include <Encoder.h>
-Encoder myEnc(3, 5);
+#include <Encoder.h> // Enable the high accuracy encoder library
+Encoder myEnc(3, 5); // Sets the encoder pins
 
 #define self_addr 0x04 // The i2c address that the arduino uses
 #define block_mx 32    // Maximum size for an i2c message
@@ -25,8 +25,8 @@ int PWM_Pin = 9; // PWM wave outputs to pin 9
 
 void setup() {
   Serial.begin(57600);
-  digitalWrite(4, HIGH);
-  pinMode(PWM_Pin, OUTPUT);
+  digitalWrite(4, HIGH); // Sets pin for the H-bridge that determines the direction of spin
+  pinMode(PWM_Pin, OUTPUT); // enables the PWM output that controls the voltage supply to the motor
   analogWrite(PWM_Pin,0);
   md.init();
 
@@ -40,18 +40,18 @@ void setup() {
 
 }
 
-long oldPosition  = -999;
-long newPosition = 0;
+long oldPosition  = -999; // Encoder old position count
+long newPosition = 0; // Encoder new position count
 const double delta = 0.001963495; // This is [(2*pi) / 3200]
 double theta = 0; // initalizes the current theta var.
 double old_theta = 0; // initalizes the old theta var.
-double theta_vel = 0;
+double theta_vel = 0; // Theta velocity
 double voltage = 0;
 boolean toggle = true;
-double presentVoltage = 8.0;
-int PWM_value = 0;
+double presentVoltage = 8.0; // Voltage the batterys are presently suppying
+int PWM_value = 0; // value that will be sent to the PWM pin after calculations
 
-int period = 8;
+int period = 8;  // Rate at which our code loops (8ms)
 double time_now = 0;
 double time_after = 0;
 double desired_theta = 0;
@@ -82,14 +82,14 @@ void loop() {
   
   PWM_value = ((voltage/presentVoltage))*255;
   
-  /// implement directional pin -----------------------------------
-  
+  // Accounting for PWM saturation
   if (PWM_value > 255) {
     PWM_value = 255;
   }
   else if (PWM_value < -255) {
     PWM_value = -255;
   }
+  
   Serial.print(desired_pos);
   Serial.print(" ");
   Serial.print(newPosition);
@@ -97,12 +97,14 @@ void loop() {
   Serial.print(error);
   Serial.print(" ");
   Serial.println(PWM_value);
+  
+  // Accounting for spin direction
   if (PWM_value >= 0)  
     digitalWrite(7, LOW);
   if (PWM_value < 0)
     digitalWrite(7, HIGH);
-  
-  analogWrite(PWM_Pin, abs(PWM_value));
+ 
+  analogWrite(PWM_Pin, abs(PWM_value)); // Sending calculated PWM to the output pin
   
   // Encoder Part
   newPosition = myEnc.read();
@@ -118,9 +120,9 @@ void loop() {
   }
   time_after = (((int)millis())) / 1000.0;
 
-  delay(8 - (.001*(time_after - time_now)));
+  delay(8 - (.001*(time_after - time_now))); // Sets the code to loop at set speed while accouting for
+                                             // the time it takes to run the code.
 }
-
 
 /**********************I2C Communication Methods**************************/
 
