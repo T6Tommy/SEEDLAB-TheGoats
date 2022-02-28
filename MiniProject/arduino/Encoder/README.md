@@ -3,7 +3,8 @@ Group 7 - The Goats
 Spring 2022
 
 This is the code that was initally used to implement the new encoder library that is defined as
-High performance with 4X counting and very efficient interrupt routines. 
+High performance with 4X counting and very efficient interrupt routines. It calculates the motors
+theta as it spins. It relates to section 4.4 in the provided MiniProject description.
 
 Required to run the Code:
 - Pololua motor encoder Pins attached to the arduino uno 5V, GND, and PINS 3 & 4.
