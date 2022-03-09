@@ -112,11 +112,12 @@ void loop() {
   }
 
   if (SPIN) {
-    
+
+    error = theta_screen - current_theta;
     IR = I_pastR+(theta_screen*0.008);
     I_pastR = IR;
     
-    voltage = (KpR * theta_screen) + (KiR *IR);
+    voltage = (KpR * error) + (KiR *IR);
     
     PWM_value = ((voltage/presentVoltage))*255;
     if (PWM_value > 255) { 
