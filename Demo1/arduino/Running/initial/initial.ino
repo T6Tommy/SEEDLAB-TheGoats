@@ -1,5 +1,3 @@
-//#include "DualMC33926MotorShield.h"
-
 #include <Wire.h>
 #include <Encoder.h>
 Encoder myEncR(3, 5);
@@ -112,7 +110,6 @@ void loop() {
   }
 
   if (SPIN) {
-
     error = theta_screen - current_theta;
     IR = I_pastR+(theta_screen*0.008);
     I_pastR = IR;
@@ -137,7 +134,7 @@ void loop() {
     analogWrite(PWM_PinR, abs(PWM_value));
     analogWrite(PWM_PinL, abs(PWM_value)); 
 
-    if (theta_screen == 0) {  // need to add error bounds to this ----------------------------------
+    if (error < 0.1 & error > 0.1) {  // need to add error bounds to this ----------------------------------
       SPIN = false;
       analogWrite(PWM_PinR, 0);
       analogWrite(PWM_PinL, 0); 
@@ -174,7 +171,7 @@ void loop() {
     current_pos = 0;
     current_theta = 0;
     error = theta_screen - current_theta;
-    if (error > 0 | error < 0) {
+    if (error > .1 | error < -.1) {
       SPIN = true;
     }
     else if ((desired_pos - current_pos) > 0 | (desired_pos - current_pos) < 0) {
