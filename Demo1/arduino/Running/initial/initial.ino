@@ -172,7 +172,9 @@ void loop() {
   }
   else {
     current_pos = 0;
-    if (theta_screen > 0 | theta_screen < 0) {
+    current_theta = 0;
+    error = theta_screen - current_theta;
+    if (error > 0 | error < 0) {
       SPIN = true;
     }
     else if ((desired_pos - current_pos) > 0 | (desired_pos - current_pos) < 0) {
