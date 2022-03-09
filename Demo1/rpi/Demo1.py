@@ -1,12 +1,11 @@
- #Aaron Hsu
+#Aaron Hsu
 #Demo1
 
 #All of the imported modules
 import numpy as np
 import cv2 as cv
 import math
-import glob
-#import i2c
+import i2c
 from picamera import PiCamera
 from time import sleep
 from matplotlib import pyplot as plt
@@ -17,33 +16,6 @@ PiCamera.exposure_mode = 'off'
 g = PiCamera.awb_gains
 PiCamera.awb_mode = 'off'
 PiCamera.awb_gains = g
-
-# termination criteria
-criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-
-objp = np.zeros((6*7,3), np.float32)
-objp[:,:2] = np.mgrid[0:7,0:6].T.reshape(-1,2)
-
-objpoints = []
-imgpoints = []
-images = glob.glob('/home/pi/Chessboard/*.jpg')
-
-for fname in images:
-    img = cv.imread(fname)
-    gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
-
-    ret, corners = cv.findChessboardCorners(gray,(7,6),None)
-
-    if ret == True:
-        objpoints.append(objp)
-
-        corners2 = cv.cornerSubPix(gray, corners,(11,11),(-1,-1), criteria)
-        imgpoints.append(objp)
-
-        cv.drawChessboardCorners(img, (7,6), corners2, ret)
-        cv.imshow('img', img)
-        cv.waitKey(500)
-cv.destroyAllWindows()
 
 #Start live video
 cap = cv.VideoCapture(0)
@@ -106,7 +78,7 @@ while True:
         print(radians)
 
 
-    #i2c.MoveWheel(N,S,E,W)
+    i2c.command(i2c.CMD_TURN, radians)
 
     #Displays live video
     cv.imshow('frame',res)
