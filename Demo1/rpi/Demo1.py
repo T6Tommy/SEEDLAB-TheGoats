@@ -48,8 +48,8 @@ while True:
     #Kernel for the filters
     kernel = np.ones((5,5),np.uint8)
     #Saving and then reading frame in grayscale
-    img2 = cv.imwrite('/home/pi/Desktop/mini1.jpg', res)
-    img2 = cv.imread('/home/pi/Desktop/mini1.jpg',0)
+    img2 = cv.imwrite('/home/pi/Desktop/Demo1.jpg', res)
+    img2 = cv.imread('/home/pi/Desktop/Demo1.jpg',0)
     #Uses 'opening' and 'closing' effect on frame
     img3 = cv.morphologyEx(img2, cv.MORPH_OPEN, kernel)
     img3 = cv.morphologyEx(img3, cv.MORPH_CLOSE, kernel)
