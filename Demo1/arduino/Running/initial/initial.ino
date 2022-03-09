@@ -40,6 +40,7 @@ long newPositionL = 0;
 long newPositionR = 0;
 
 const double delta = 0.001963495; // This is [(2*pi) / 3200]
+const double new_delta = 0.00582569;
 
 double theta = 0; // initalizes the current theta var.
 double old_theta = 0; // initalizes the old theta var.
@@ -55,6 +56,7 @@ double time_after = 0;
 
 double theta_screen = 0; // theta from arduino
 double theta_screen_old = 0;
+double current_theta = 0;
 
 const double KpR = 10;
 const double KiR = 0;
@@ -76,6 +78,9 @@ double Rot_vel = 0;
 
 double current_pos = 0;
 double desired_pos = 0;
+double old_pos = 0;
+double changeR = 0;
+double changeL = 0;
 double error = 0;
 float desired_pos_old = 0;
 
