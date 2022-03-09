@@ -32,8 +32,8 @@ void setup() {
   Serial.println("Initialization complete."); // Let the user know we're ready.
 }
 
-long oldPositionL  = -999;
-long oldPositionR  = -999;
+long oldPositionL  = 0;
+long oldPositionR  = 0;
 long newPositionL = 0;
 long newPositionR = 0;
 
@@ -76,12 +76,13 @@ double vel_L = 0;
 double Rot_vel = 0;
 
 double current_pos = 0;
-double desired_pos = 0;
+double desired_pos = 5;
 double old_pos = 0;
 double changeR = 0;
 double changeL = 0;
 double error = 0;
 float desired_pos_old = 0;
+bool done = false;
 
 void loop() {
 
@@ -110,11 +111,12 @@ void loop() {
   }
 
   if (SPIN) {
-    error = theta_screen - current_theta;
+    Serial.println("SPIN");
+   // error = theta_screen - current_theta;
     IR = I_pastR+(theta_screen*0.008);
     I_pastR = IR;
     
-    voltage = (KpR * error) + (KiR *IR);
+    voltage = (KpR * theta_screen) + (KiR *IR);
     
     PWM_value = ((voltage/presentVoltage))*255;
     if (PWM_value > 255) { 
@@ -134,20 +136,22 @@ void loop() {
     analogWrite(PWM_PinR, abs(PWM_value));
     analogWrite(PWM_PinL, abs(PWM_value)); 
 
-    if (error < 0.1 & error > 0.1) {  // need to add error bounds to this ----------------------------------
+    if (theta_screen < 0.1 & theta_screen > -0.1) {  // need to add error bounds to this ----------------------------------
       SPIN = false;
+      //done = true;
       analogWrite(PWM_PinR, 0);
       analogWrite(PWM_PinL, 0); 
       delay(400);
     }
   } // ---------------------------------------------------------------------------------------------------------------------
   else if (FORWARD) {
+    Serial.println("FORWARD");
     error = desired_pos - current_pos;
     
     IF = I_pastF+(error*0.008);
     I_pastF = IF;
     
-    voltage = (KpF * theta_screen) + (KiF *IF);
+    voltage = (KpF * error) + (KiF *IF);
     if (PWM_value >= 0) {
       digitalWrite(7, LOW);
       digitalWrite(8, LOW);
@@ -166,6 +170,10 @@ void loop() {
     }
     analogWrite(PWM_PinR, abs(PWM_value));
     analogWrite(PWM_PinL, abs(PWM_value)); 
+
+    if (error < 0.2 & error > -0.2) {
+      FORWARD = false;
+    }
   }
   else {
     current_pos = 0;
@@ -174,7 +182,7 @@ void loop() {
     if (error > .1 | error < -.1) {
       SPIN = true;
     }
-    else if ((desired_pos - current_pos) > 0 | (desired_pos - current_pos) < 0) {
+    else if (((desired_pos - current_pos) > 0 | (desired_pos - current_pos) < 0) & done) {
       error = desired_pos - current_pos;
       FORWARD = true;
     }
