@@ -11,8 +11,6 @@ Description:    i2c.py takes a floating point angle input (radians) and sends a
 """
 from enum import Enum
 import time
-import board
-import adafruit_character_lcd.character_lcd_rgb_i2c as character_lcd
 import struct
 
 from smbus import SMBus
@@ -32,8 +30,8 @@ CMD_TURN = 0x02
 # Sends the arduino the command to move forward or backward a certain distance
 # in meters.
 def command (register, value):
-    message = list(struct.pack("f", value)) # convert float to a list of bytes
-    print ([hex(x) for x in message]) # Print out the bytes in hexadecimal
+    message = list(bytearray(struct.pack("f", value))) # convert float to a list of bytes
+    print(["0x%02x" % b for b in message])
     try:
         smb.write_block_data(MOTOR_ADDR, register, message) # send the command
     except IOError:
