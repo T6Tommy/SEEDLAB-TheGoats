@@ -10,16 +10,21 @@ Description:    i2c.py takes a floating point angle input (radians) and sends a
 @author: Paul Sampson
 """
 from enum import Enum
+import board
 import time
 import struct
+import adafruit_character_lcd.character_lcd_rgb_i2c as character_lcd
 
 from smbus import SMBus
 
 lcd_columns = 16
 lcd_rows = 2
 
-#ada = board.I2C()
-smb = SMBus(1) #initialize i2c
+ada = board.I2C() #initialize LCD library
+smb = SMBus(1) #initialize SMBus
+
+lcd = character_lcd.Character_LCD_RGB_I2C(ada, lcd_columns, lcd_rows)
+lcd.color = [255, 171 , 0] # Set the color to amber(?)
 
 MOTOR_ADDR = 0x04
 
@@ -30,6 +35,10 @@ CMD_TURN = 0x02
 # Sends the arduino the command to move forward or backward a certain distance
 # in meters.
 def command (register, value):
+    lcd.clear();
+    if (register == CMD_TURN) lcd_str = "Turning " + str(value)
+    if (register == CMD_FDBK) lcd_str = "Moving F/B " + str(value)
+    lcd.message = lcd_str
     message = list(bytearray(struct.pack("f", value))) # convert float to a list of bytes
     print(["0x%02x" % b for b in message])
     try:
@@ -37,7 +46,6 @@ def command (register, value):
     except IOError:
         print("Failed to communicate with motor controller.") # i2c failure
 
-#lcd = character_lcd.Character_LCD_RGB_I2C(ada, lcd_columns, lcd_rows)
 
 def main():
     while(True):

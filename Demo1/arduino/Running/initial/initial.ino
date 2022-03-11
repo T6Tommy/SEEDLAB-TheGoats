@@ -56,11 +56,13 @@ double theta_screen = 0; // theta from arduino
 double theta_screen_old = 0;
 double current_theta = 0;
 
-const double KpR = 10;
+const double KpR = 6.06;
 const double KiR = 0;
+const double sR = 1.04;
 double I_pastR = 0;
 double IR = 0;
-const double KpF = 10;
+const double KpF = 10; // note from Paul: Calculated K is 34.4
+const double sF = 1.06;
 const double KiF = 0;
 double I_pastF = 0;
 double IF = 0;
