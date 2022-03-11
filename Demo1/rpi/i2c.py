@@ -10,6 +10,7 @@ Description:    i2c.py takes a floating point angle input (radians) and sends a
 @author: Paul Sampson
 """
 from enum import Enum
+import sys
 import board
 import time
 import struct
@@ -35,9 +36,9 @@ CMD_TURN = 0x02
 # Sends the arduino the command to move forward or backward a certain distance
 # in meters.
 def command (register, value):
-    lcd.clear();
-    if (register == CMD_TURN) lcd_str = "Turning " + str(value)
-    if (register == CMD_FDBK) lcd_str = "Moving F/B " + str(value)
+    lcd.clear()
+    if (register == CMD_TURN): lcd_str = "Object Detected!\nTurning " + str(value) + " rad"
+    if (register == CMD_FDBK): lcd_str = "Moving F/B \n" + str(value) + " m"
     lcd.message = lcd_str
     message = list(bytearray(struct.pack("f", value))) # convert float to a list of bytes
     print(["0x%02x" % b for b in message])
@@ -46,8 +47,30 @@ def command (register, value):
     except IOError:
         print("Failed to communicate with motor controller.") # i2c failure
 
+def demo(angle, distance):
+    # Prompt arduino to move the wheel to the specified angle:
+    print("Sending command for turning %f radians:" % angle)
+    command(CMD_TURN, angle)
+    time.sleep(1)
+    print("Sending command for moving %f meters:" % distance)
+    command(CMD_FDBK, distance)
+    time.sleep(1)
+    lcd.clear()
+
+angle = 0
+distance = 0
 
 def main():
+    if(len(sys.argv) > 1):
+        try:
+            angle = float(sys.argv[1])
+            distance = float(sys.argv[2])
+        except ValueError:
+            print("Invalid input arguments!")
+        if(angle and distance):
+            demo(angle, distance)
+        time.sleep(1)
+        sys.exit()
     while(True):
         while(True):
             try: # Prompt user input
@@ -63,13 +86,7 @@ def main():
             except ValueError: # The user did not enter a float!
                 print ("Invalid floating-point value!")
                 continue
-
-        # Prompt arduino to move the wheel to the specified angle:
-        print("Sending command for turning %f radians:" % angle)
-        command(CMD_TURN, angle)
-        time.sleep(1)
-        print("Sending command for moving %f meters:" % distance)
-        command(CMD_FDBK, distance)
+        demo(angle, distance)
 
 if __name__ == "__main__":
         main()
