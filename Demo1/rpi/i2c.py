@@ -32,16 +32,18 @@ MOTOR_ADDR = 0x04
 # Motor command directory. values are to be used in the i2c register field:
 CMD_FDBK = 0x01
 CMD_TURN = 0x02
+CMD_NULL = 0x03
 
 # Sends the arduino the command to move forward or backward a certain distance
-# in meters.
+# in metes.
 def command (register, value):
     lcd.clear()
-    if (register == CMD_TURN): lcd_str = "Object Detected!\nTurning " + str(value) + " rad"
+    if (register == CMD_NULL): lcd_str = "Object not\n detected."
+    if (register == CMD_TURN): lcd_str = "Object Detected!\nTurning " + str(round(value*180/3.14159, 2)) + " deg"
     if (register == CMD_FDBK): lcd_str = "Moving F/B \n" + str(value) + " m"
     lcd.message = lcd_str
     message = list(bytearray(struct.pack("f", value))) # convert float to a list of bytes
-    print(["0x%02x" % b for b in message])
+    #print(["0x%02x" % b for b in message])
     try:
         smb.write_block_data(MOTOR_ADDR, register, message) # send the command
     except IOError:

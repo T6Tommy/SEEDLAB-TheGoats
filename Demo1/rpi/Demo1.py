@@ -8,7 +8,7 @@ import math
 import i2c
 from picamera import PiCamera
 from time import sleep
-from matplotlib import pyplot as plt
+
 
 sleep(2)
 PiCamera.shutter_speed= PiCamera.exposure_speed
@@ -74,11 +74,11 @@ while True:
     #Prints out the angle or "No Marker Found" if no object
     if xy[0] == 0 and xy[1] == 0:
         print("No Marker Found")
+        i2c.command(i2c.CMD_NULL, 0)
     else:
         print(radians)
+        i2c.command(i2c.CMD_TURN, radians)
 
-
-    i2c.command(i2c.CMD_TURN, radians)
 
     #Displays live video
     cv.imshow('frame',res)
