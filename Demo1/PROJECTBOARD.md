@@ -6,13 +6,20 @@
 
 ### Team Members:
 
-- Josie Dudden - Simulation/Control
+- Paul Sampson - System Integration
 
 - Aaron Hsu - Computer Vision
 
-- Paul Sampson - System Integration
+- Josie Dudden - Simulation/Control
 
 - Thomas MacDougall - Localization
 
 ### Tasks:
 
+- Marker Detection Scheme/Marker Angle - Aaron Hsu
+
+- Create Controller/Value Calculations - Thomas MacDougall
+
+- Communication Between Devices/Part Integration - Paul Sampson
+
+- Simulation of Controller Systems - Josie Dudden
