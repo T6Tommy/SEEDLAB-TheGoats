@@ -11,5 +11,5 @@ In this folder, "rpi", there are two sets of Python code used on the Raspberry P
 The first code is labeled, "Demo1.py". This Python code is the marker detection scheme used with the Pi Camera to detect the 1" blue tape marker.
 This Python code also detects the horizontal angle of the 1" blue tape marker to the camera.
 
-The second code is labeled, "i2c.py". This Python code takes in variables sent by the "MP1.py" to determine the quandrant the marker is in on the camera.
-It interprets this data to send to the Arduino for the position or angle the wheel needs to be in.
+The second code is labeled, "i2c.py". This Python code takes in the horizontal angle in radians sent by the "Demo1.py".
+It interprets this data to send to the LCD display.
