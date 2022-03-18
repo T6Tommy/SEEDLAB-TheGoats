@@ -42,7 +42,7 @@ long newPositionL = 0;
 long newPositionR = 0;
 
 // theta
-double desired_theta = 3.19;
+double desired_theta = 3.14;
 double current_theta = 0;
 double old_theta = 0;
 double vel_R = 0;
@@ -50,7 +50,7 @@ double vel_L = 0;
 
 // distance 
 double current_pos = 0;
-double desired_pos = 36; // in inches 
+double desired_pos = 35; // in inches 
 double old_pos = 0;
 double changeR = 0;
 double changeL = 0;
@@ -61,7 +61,7 @@ const double KpS = 5;
 const double KiS = 0.4;
 double I_pastS = 0;
 double IS = 0;
-const double KpF = 0.3;
+const double KpF = 3;
 const double KiF = 0;
 double I_pastF = 0;
 double IF = 0;
@@ -105,7 +105,15 @@ void loop() {
       FORWARD = true;
       analogWrite(PWM_PinR, 0);
       analogWrite(PWM_PinL, 0); 
-      delay(400);
+      delay(600);
+      myEncL.write(0);
+      myEncR.write(0);
+      oldPositionL = 0;
+      oldPositionR = 0;
+      newPositionL = 0;
+      newPositionR = 0;
+      current_pos = 0;
+      delay(300);
     }
   }
   else if (FORWARD) {
@@ -117,11 +125,11 @@ void loop() {
     I_pastF = IF;
     voltage = (KpF * error) + (KiF *IF);
     PWM_value = ((voltage/presentVoltage))*255;
-    if (PWM_value > 100) {
-      PWM_value = 100;
+    if (PWM_value > 50) {
+      PWM_value = 50;
     }
-    else if (PWM_value < -100) {
-      PWM_value = -100;
+    else if (PWM_value < -50) {
+      PWM_value = -50;
     }
     if (PWM_value >= 0) {
       digitalWrite(7, LOW);
@@ -131,19 +139,22 @@ void loop() {
       digitalWrite(8, HIGH);
       digitalWrite(7, HIGH);
     }
-    if (changeL > changeR) {
-      analogWrite(PWM_PinR, abs(PWM_value+5));
+    /*if (changeL > changeR) {
+      analogWrite(PWM_PinR, abs(PWM_value)+18);
       analogWrite(PWM_PinL, abs(PWM_value));
     }
     else if (changeR > changeL) {
-      analogWrite(PWM_PinL, abs(PWM_value+5));
+      analogWrite(PWM_PinL, abs(PWM_value)+3);
       analogWrite(PWM_PinR, abs(PWM_value));
     }
     else {
-      analogWrite(PWM_PinR, abs(PWM_value+2));
+      analogWrite(PWM_PinR, abs(PWM_value)+6);
       analogWrite(PWM_PinL, abs(PWM_value));
-    }
-    
+    }*/
+    analogWrite(PWM_PinR, abs(PWM_value)+6);
+    analogWrite(PWM_PinL, abs(PWM_value));
+    Serial.print(PWM_value);
+    Serial.print('\t');
   }
 
   // encoder --------------------------------------------------------
@@ -174,9 +185,9 @@ void loop() {
   Serial.print('\t');
   Serial.print(error);
   Serial.print('\t');
-  Serial.print(desired_theta);
+  Serial.print(newPositionL);
   Serial.print('\t');
-  Serial.println(current_theta);
+  Serial.println(newPositionR);
   oldPositionR = newPositionR;
   oldPositionL = newPositionL;
   
