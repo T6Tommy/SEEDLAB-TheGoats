@@ -41,14 +41,14 @@ long newPositionR = 0;
 
 // distance 
 double current_pos = 0;
-double desired_pos = 36; // in inches 
+double desired_pos = 84; // in inches 
 double old_pos = 0;
 double changeR = 0;
 double changeL = 0;
 double error = 0;
 
 // PI Controller 
-const double KpF = 0.3;
+const double KpF = 3;
 const double KiF = 0;
 double I_pastF = 0;
 double IF = 0;
@@ -79,17 +79,20 @@ void loop() {
     digitalWrite(7, HIGH);
   }
   if (changeL > changeR) {
-    analogWrite(PWM_PinR, abs(PWM_value+5));
+    analogWrite(PWM_PinR, abs(PWM_value)+14);
     analogWrite(PWM_PinL, abs(PWM_value));
   }
   else if (changeR > changeL) {
-    analogWrite(PWM_PinL, abs(PWM_value+5));
+    analogWrite(PWM_PinL, abs(PWM_value)+5);
     analogWrite(PWM_PinR, abs(PWM_value));
   }
   else {
-    analogWrite(PWM_PinR, abs(PWM_value+2));
+    analogWrite(PWM_PinR, abs(PWM_value)+4);
     analogWrite(PWM_PinL, abs(PWM_value));
   }
+  Serial.print(PWM_value);
+  Serial.print('\t');
+  
 
   // Encoder -----------------------------------------------------------------
   newPositionL = myEncL.read();
