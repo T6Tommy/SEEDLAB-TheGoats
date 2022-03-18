@@ -12,4 +12,4 @@ The first code is labeled, "Demo1.py". This Python code is the marker detection 
 This Python code also detects the horizontal angle of the 1" blue tape marker to the camera.
 
 The second code is labeled, "i2c.py". This Python code takes in the horizontal angle in radians sent by the "Demo1.py".
-It interprets this data to send to the LCD display.
+It interprets this data to send to the LCD display and attempts to send it to an Arduino peripheral at i2c address 0x20.
