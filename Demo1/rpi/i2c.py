@@ -22,7 +22,7 @@ lcd_columns = 16
 lcd_rows = 2
 
 ada = board.I2C() #initialize LCD library
-smb = SMBus(1) #initialize SMBus
+#smb = SMBus(1) #initialize SMBus
 
 lcd = character_lcd.Character_LCD_RGB_I2C(ada, lcd_columns, lcd_rows)
 lcd.color = [255, 171 , 0] # Set the color to amber(?)
@@ -44,10 +44,10 @@ def command (register, value):
     lcd.message = lcd_str
     message = list(bytearray(struct.pack("f", value))) # convert float to a list of bytes
     #print(["0x%02x" % b for b in message])
-    try:
-        smb.write_block_data(MOTOR_ADDR, register, message) # send the command
-    except IOError:
-        print("Failed to communicate with motor controller.") # i2c failure
+    #try:
+        #smb.write_block_data(MOTOR_ADDR, register, message) # send the command
+    #except IOError:
+     #   print("Failed to communicate with motor controller.") # i2c failure
 
 def demo(angle, distance):
     # Prompt arduino to move the wheel to the specified angle:
