@@ -41,29 +41,34 @@ isLeft = 0x03
 isExiting = 0x04
 
 def Send(message):
-    
+
     try:
        smb.write_byte_data(0x04, 0, message) # Send the angle code.
     except IOError: # If there's no I2C let the user know:
         print("Cannot communicate with Arduino.")
-
-lcd = character_lcd.Character_LCD_RGB_I2C(ada, lcd_columns, lcd_rows)
-lcd.color = [100, 0, 100] # Set the color to purple
-
+try:
+    lcd = character_lcd.Character_LCD_RGB_I2C(ada, lcd_columns, lcd_rows)
+    lcd.color = [100, 0, 100] # Set the color to purple
+except ValueError:
+    print("No LCD detected.")
 
 def PrintLCD (message):
-    lcd.clear();    
-    if message == isOffscreen:
-        lcd.message = "Tape \n offscreen"
-    if message == isRight:
-        lcd.message = "Tape is to\n the right"
-    if message == isLeft:
-        lcd.message = "Tape is to\n the left"
-    if message == isExiting:
-        lcd.message = "Tape is\nleaving view"
+    try:
+        lcd.clear();
+        if message == isOffscreen:
+            lcd.message = "Tape \n offscreen"
+        if message == isRight:
+            lcd.message = "Tape is to\n the right"
+        if message == isLeft:
+            lcd.message = "Tape is to\n the left"
+        if message == isExiting:
+            lcd.message = "Tape is\nleaving view"
+    except NameError:
+        nullvar = 0
 
 
 def main():
+    message_old = "null"
     while(True):
         try: # Prompt user input
             message = int(input("Please enter a message (0-4)"))
@@ -71,8 +76,10 @@ def main():
             print ("Invalid integer value!")
             continue
         # Prompt arduino to move the wheel to the specified angle:
-        Send(message)
-        PrintLCD(message)
+        if(message != message_old):
+            Send(message)
+            PrintLCD(message)
+            message_old = message
 
 if __name__ == "__main__":
         main()
