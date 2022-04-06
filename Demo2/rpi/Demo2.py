@@ -33,14 +33,14 @@ while True:
         print("Cannot read frame")
         break
     #Scales frame
-    width = int(img.shape[1]/2)
-    height = int(img.shape[0]/2)
+    width = int(img.shape[1]/1.5)
+    height = int(img.shape[0]/1.5)
     new = (width, height)
     img = cv.resize(img, new) #New resized frame (smaller)
     #Converts frame from BGR format to HSV
     hsv = cv.cvtColor(img,cv.COLOR_BGR2HSV)
     #Uppper and Lower bounds for color detection
-    lower = np.array([96,150,50])
+    lower = np.array([75,150,0])
     upper = np.array([108,255,255])
     mask = cv.inRange(hsv, lower, upper) #Mask for color detection
     #Frame to display only yellow objects and black everywhere else
@@ -70,19 +70,46 @@ while True:
     x = round(xy[0],2)
     y = round(xy[1],2)
     #Displays live video
-    cv.imshow('frame',img3)
-    #Prints out the angle or "No Marker Found" if no object
-    if xy[0] == 0 and xy[1] == 0:
-        print("No Marker Found")
-        #i2c.command(i2c.CMD_NULL, 0)
-    else:
-        print(radians)
-        #i2c.command(i2c.CMD_TURN, radians)
-
-
-    #Displays live video
     cv.imshow('frame',res)
 
+
+    Turn = 0
+    stop = 9
+    Go = 9
+             
+    if xy[0] == 0 and xy[1] == 0:
+        print("Searching...")
+        Turn= 1 #Continue turning till blue tape is found
+    elif angle > 0.75:
+        print("Turning Left")
+        print(angle)
+        Turn = 2 #Continue turning left because tape is found
+    elif angle < -0.75:
+        print("Turning Right")
+        print(angle)
+        Turn = 4 #Tape is somehow on the right of camera
+    else:
+        print("Tape is centered")
+        Turn = 3 #Tape should be centered ahead
+
+    if xy[0] == 0 and xy[1] == 0:
+        print("Empty")
+        Max = 0
+    else:
+        Y,X = np.nonzero(thresh1)
+        Max = np.amax(Y,0)
+        print(Max)
+
+    if Max >= 319:
+        stop = 1   #This means tape is at end of camera, STOP
+        Go = 0     #This means tape is still on camera, GO
+    else: 
+        stop = 0   #This means tape is not at end, GO
+        Go = 1     #This means tape is not on camera, STOP
+
+    print(stop)
+    print(Turn)
+    print(Go)
     #To end live video
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
