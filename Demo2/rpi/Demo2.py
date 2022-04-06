@@ -77,29 +77,31 @@ while True:
 
     stop = 9
     Go = 9
+
+    if xy[0] == 0 and xy[1] == 0:
+        Turn = 1
+    else:
+        print(angle)
+      
              
     if xy[0] == 0 and xy[1] == 0:
         print("Searching...")
         Turn= 1 #Continue turning till blue tape is found
     elif angle > 0.75:
         print("Turning Left")
-        print(angle)
         Turn = 2 #Continue turning left because tape is found
     elif angle < -0.75:
         print("Turning Right")
-        print(angle)
         Turn = 4 #Tape is somehow on the right of camera
     else:
         print("Tape is centered")
         Turn = 3 #Tape should be centered ahead
 
     if xy[0] == 0 and xy[1] == 0:
-        print("Empty")
         Max = 0
     else:
         Y,X = np.nonzero(thresh1)
         Max = np.amax(Y,0)
-        print(Max)
 
     if Max >= 319:
         stop = 1   #This means tape is at end of camera, STOP
