@@ -5,7 +5,7 @@
 import numpy as np
 import cv2 as cv
 import math
-#import i2c
+import i2c
 from picamera import PiCamera
 from time import sleep
 
@@ -23,6 +23,9 @@ cap = cv.VideoCapture(0)
 if not cap.isOpened():
     print("Cannot open camera")
     exit()
+
+Turn = 0
+Turn_old = 0
 
 #While Loop to read each frame
 while True:
@@ -72,8 +75,6 @@ while True:
     #Displays live video
     cv.imshow('frame',res)
 
-
-    Turn = 0
     stop = 9
     Go = 9
              
@@ -106,7 +107,12 @@ while True:
     else: 
         stop = 0   #This means tape is not at end, GO
         Go = 1     #This means tape is not on camera, STOP
-
+        
+    
+    if(Turn_old != Turn):
+        i2c.Send(Turn)
+        Turn_old = Turn
+    
     print(stop)
     print(Turn)
     print(Go)
