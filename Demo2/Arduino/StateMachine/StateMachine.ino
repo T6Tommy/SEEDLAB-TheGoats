@@ -10,22 +10,16 @@
 StateMachine machine = StateMachine();
 
 //State Definitions
-State* S0 = machine.addState(&state_outside);
-State* S1 = machine.addState(&state_right);
-State* S2 = machine.addState(&state_centered);
-State* S3 = machine.addState(&state_left);
-State* S4 = machine.addState(&state_exit_bottom);
-State* S5 = machine.addState(&state_stop);
-
 
 /**********************I2C Buffer variables**************************/
 //A data buffer for incoming messages:
-uint8_t recieved[block_mx];
+uint8_t received[block_mx];
 //An index to know how much data is on the messsage buffer:
-uint8_t recieved_length = 0;
+uint8_t received_length = 0;
 
 uint8_t message[block_mx]; //A data buffer for outgoing messages
-
+uint8_t cam_signal = 0;
+float angle = 0;
 
 int PWM_Pin = 9; // PWM wave outputs to pin 9
 
@@ -39,58 +33,37 @@ void setup() {
   // define callbacks for i2c communication
   Wire.onReceive(receiveData);
   Wire.onRequest(sendData);
+  Serial.println("Initialized");
 }
 
 
-void loop() {
-  machine.run();
-  delay(20);
-}
-
-void state_outside(){
-  //Keep turning...
-}
-
-void state_right(){
-  //Keep turning...
-}
-
-void state_centered(){
-  //Go straight!
-}
-
-void state_left(){
-  //Turn the other way
-}
-
-void state_exit_bottom(){
-  //Go just a little further
-}
-
-void state_stop(){
-  //Don't do anything
+void loop() {  
+  delay(100);
+  
+  if (received_length) {
+    // We expect bytes 3-6 to be a floating point value (4 bytes):
+    uint8_t value[4] = {received[2], received[3], received[4], received[5]};
+    // For each register, set the associated parameter:
+    if (received[0] == 0x00) cam_signal = value;
+    if (received[0] == 0x01) angle = fromBytes(value);
+    received_length = 0;
+  }
 }
 
 /**********************I2C Communication Methods**************************/
 
 void receiveData(int byteCount) {
-  Serial.print("data recieved:");
-  uint8_t i = 0; //Index: tracks the used space in the message
-  
-  //The message should be no longer than 32 values:
-  while(Wire.available() && (i < block_mx)) {
-     recieved[i] = Wire.read(); // Store to message buffer
-     Serial.print(recieved[i]); // Print that value to serial
-     Serial.print(' ');
-     i++; //increment index for next value
+  Serial.print("Data received:");
+  uint8_t i = 0; // Index for the number of bytes received
+  while (Wire.available()) {
+    received[i] = Wire.read(); // take the next byte
+    Serial.print("0x");
+    Serial.print(received[i], HEX); //print that byte as a hexadecimal
+    Serial.print(" ");
+    i++; // increment the index
   }
-  Serial.println(' ');
-  //recieved_length = i;
-  Serial.println(i);
-  if(i == 2) {
-    Serial.print("Recieved ");
-    Serial.println(recieved[1]);
-  }
+  received_length = i; // The index is now the length of the message
+  Serial.println(""); // end the line on the serial console
 }
 
 // sendData sends the arduino's status back to the Raspberry Pi. Currently it only
@@ -104,4 +77,19 @@ void sendData() {
     Serial.print(" ");
   }
   Serial.println(" ");
+}
+
+
+float fromBytes(uint8_t *input_array) {
+  uint32_t input = 0; // Buffer for storing four bytes as one variable
+  // This for loop "stacks" the bytes on top of each other
+  // by shifting each byte by some multiple of eight and ORing
+  // with the buffer:
+  for (int i = 0; i < 4; i++) {
+    input |= (uint32_t)input_array[i] << (8 * i);
+  }
+  // Copy the data at the input buffer location to a floating point
+  // as if that the data at that location was a floating point.
+  float output = *(float *)&input;
+  return output;
 }
