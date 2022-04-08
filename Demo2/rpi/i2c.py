@@ -12,14 +12,15 @@ Description:    i2c.py takes a floating point angle input (radians) and sends a
 
 import time
 import board
+import struct
 import adafruit_character_lcd.character_lcd_rgb_i2c as character_lcd
 
 from smbus import SMBus
 
+MOTOR_ADDR = 0x04
+
 lcd_columns = 16
 lcd_rows = 2
-
-pi = 3.141592653589793
 
 ada = board.I2C()
 smb = SMBus(1) #initialize i2c
@@ -40,10 +41,10 @@ isLeft = 0x03
 # 0x04  Tape has exited the lower-peripheral vision
 isExiting = 0x04
 
-def Send(message):
-
+def Send(register, message):
     try:
-       smb.write_byte_data(0x04, 0, message) # Send the angle code.
+        print("Message: %d" % message)
+        smb.write_byte_data(0x04, register, message) # Send the angle code.
     except IOError: # If there's no I2C let the user know:
         print("Cannot communicate with Arduino.")
 try:
@@ -66,20 +67,15 @@ def PrintLCD (message):
     except NameError:
         nullvar = 0
 
-
-def main():
-    message_old = "null"
-    while(True):
-        try: # Prompt user input
-            message = int(input("Please enter a message (0-4)"))
-        except TypeError: # The user did not enter an integer!
-            print ("Invalid integer value!")
-            continue
-        # Prompt arduino to move the wheel to the specified angle:
-        if(message != message_old):
-            Send(message)
-            PrintLCD(message)
-            message_old = message
-
-if __name__ == "__main__":
-        main()
+# Sends the arduino the command to move forward or backward a certain distance
+# in metes.
+def command (register, value):
+    #print("%i, %i" %(register,value))
+    message = 0
+    if (register == 1):
+        message = list(bytearray(struct.pack("f", value))) # convert float to a list of bytes
+    #print(["0x%02x" % b for b in message])
+    try:
+        smb.write_block_data(MOTOR_ADDR, register, message) # send the command
+    except IOError:
+        print("Failed to communicate with motor controller.") # i2c failure

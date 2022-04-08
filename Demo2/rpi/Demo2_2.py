@@ -31,6 +31,9 @@ Turn_old = 0
 timer = 0
 timer_old = 0
 
+Bottom = 0
+Go = 0
+
 #While Loop to read each frame
 while True:
     ret, img = cap.read() #Reads Frame
@@ -82,7 +85,8 @@ while True:
     cv.imshow('frame',res)
 
     #stop = 9
-    Go = 9
+
+    
 
     if xy[0] == 0 and xy[1] == 0:
         #print("Searching...")
@@ -99,16 +103,19 @@ while True:
 
     if xy[0] == 0 and xy[1] == 0:
         Max = 0
+        Min = 0
     else:
         Y,X = np.nonzero(thresh1)
         Max = np.amax(Y,0)
+        Min = np.amin(Y,0)
 
-    if Max >= 319:
+    
+    if Min >= 280 and Bottom == 0:
         Turn = 5  #This means tape is at end of camera, STOP
-        Go = 0     #This means tape is still on camera, GO
-    else:
-                   #This means tape is not at end, GO
-        Go = 1     #This means tape is not on camera, STOP
+        Go = 1     #This means tape is still on camera, GO
+        Bottom = 1
+    
+
 
 
     if(Turn_old != Turn):
@@ -126,7 +133,7 @@ while True:
 
     #print(stop)
     #print(Turn)
-    print(Go)
+    #print(Go)
     #To end live video
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
