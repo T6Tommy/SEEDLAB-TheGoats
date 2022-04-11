@@ -87,7 +87,7 @@ while True:
     #stop = 9
 
     
-
+    #Different states for each Flag
     if xy[0] == 0 and xy[1] == 0:
         #print("Searching...")
         Turn= 1 #Continue turning till blue tape is found
@@ -106,18 +106,17 @@ while True:
         Min = 0
     else:
         Y,X = np.nonzero(thresh1)
-        Max = np.amax(Y,0)
-        Min = np.amin(Y,0)
+        Max = np.amax(Y,0)          #Finds front edge of tape
+        Min = np.amin(Y,0)          #Finds back edge of tape
 
     
     if Min >= 280 and Bottom == 0:
-        Turn = 5  #This means tape is at end of camera, STOP
-        Go = 1     #This means tape is still on camera, GO
-        Bottom = 1
+        Turn = 5    #This means tape is at end of camera, STOP
+        Go = 1      #This means tape is still on camera, GO
+        Bottom = 1  #Flag to go off once to STOP
     
 
-
-
+    #Sends Turn Flag
     if(Turn_old != Turn):
         #print(Turn)
         i2c.Send(0, Turn)
