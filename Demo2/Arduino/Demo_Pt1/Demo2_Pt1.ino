@@ -54,16 +54,19 @@ double time_now = 0;
 double time_after = 0;
 int PWM_value = 0;
 
+// Theta & Velocity
 double current_theta = 0;
 double old_theta = 0;
 double vel_R = 0;
 double vel_L = 0;
 
+// Position
 double current_pos = 0;
 double old_pos = 0;
 double changeR = 0;
 double changeL = 0;
 
+// FSM Flags
 int cam_signal = 1;
 bool hit_center = false;
 double error = 0;
@@ -84,15 +87,15 @@ void loop() {
   old_theta = current_theta;
   old_pos = current_pos;
 
-  switch (cam_signal) {
-    case 1: // Tape is not seen
+  switch (cam_signal) { // FSM in this switch case
+    case 1: // Tape is not seen -- spin left at fixed rate
     digitalWrite(7, HIGH);
     digitalWrite(8, LOW);
     analogWrite(PWM_PinR, 28);
     analogWrite(PWM_PinL, 28);
     break;
 
-    case 2: // Tape is to the Left
+    case 2: // Tape is to the Left - Turn Left
     digitalWrite(7, HIGH);
     digitalWrite(8, LOW);
     analogWrite(PWM_PinR, 19);
@@ -109,14 +112,14 @@ void loop() {
     delay(500);
     break;
 
-    case 4: // Tape is to the Right
+    case 4: // Tape is to the Right - Turn Right
     digitalWrite(7, LOW);
     digitalWrite(8, HIGH);
     analogWrite(PWM_PinR, 19);
     analogWrite(PWM_PinL, 19);
     break;
 
-    case 5: // Stop
+    case 5: // Stop -- go forward a small bit more & stop
     digitalWrite(7, LOW);
     digitalWrite(8, LOW);
     if(!nada) {
