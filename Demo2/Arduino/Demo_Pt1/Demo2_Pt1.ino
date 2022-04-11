@@ -88,15 +88,15 @@ void loop() {
     case 1: // Tape is not seen
     digitalWrite(7, HIGH);
     digitalWrite(8, LOW);
-    analogWrite(PWM_PinR, 40);
-    analogWrite(PWM_PinL, 40);
+    analogWrite(PWM_PinR, 28);
+    analogWrite(PWM_PinL, 28);
     break;
 
     case 2: // Tape is to the Left
     digitalWrite(7, HIGH);
     digitalWrite(8, LOW);
-    analogWrite(PWM_PinR, 20);
-    analogWrite(PWM_PinL, 20);
+    analogWrite(PWM_PinR, 19);
+    analogWrite(PWM_PinL, 19);
     break;
 
     case 3:
@@ -112,8 +112,8 @@ void loop() {
     case 4: // Tape is to the Right
     digitalWrite(7, LOW);
     digitalWrite(8, HIGH);
-    analogWrite(PWM_PinR, 20);
-    analogWrite(PWM_PinL, 20);
+    analogWrite(PWM_PinR, 19);
+    analogWrite(PWM_PinL, 19);
     break;
 
     case 5: // Stop
@@ -122,7 +122,7 @@ void loop() {
     if(!nada) {
       analogWrite(PWM_PinR, 70);
       analogWrite(PWM_PinL, 70);
-      delay(600);
+      delay(400);
     }
     analogWrite(PWM_PinR, 0);
     analogWrite(PWM_PinL, 0);
@@ -130,6 +130,8 @@ void loop() {
     break;
   }
   
+  time_after = (((int)millis())) / 1000.0;
+  delay(8 - (.001*(time_after - time_now)));
 }
 
 /**********************I2C Communication Methods**************************/
