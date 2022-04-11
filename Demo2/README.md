@@ -16,4 +16,4 @@
 
 ### Directory Structure:
 
-This repository is for the first demonstration and is seperated into two main folders, "Arduino," which contains arduino sketches, and "rpi," which contains python code to be run on the Raspberry Pi.
+This repository is for the second demonstration and is seperated into two main folders, "Arduino," which contains arduino sketches, and "rpi," which contains python code to be run on the Raspberry Pi.
