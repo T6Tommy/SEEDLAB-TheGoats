@@ -54,16 +54,19 @@ double time_now = 0;
 double time_after = 0;
 int PWM_value = 0;
 
+// Angel and Velocity
 double current_theta = 0;
 double old_theta = 0;
 double vel_R = 0;
 double vel_L = 0;
 
+// Position
 double current_pos = 0;
 double old_pos = 0;
 double changeR = 0;
 double changeL = 0;
 
+// Flags
 int cam_signal = 1;
 int moveaft = 0;
 bool hit_center = false;
@@ -86,7 +89,8 @@ void loop() {
   old_theta = current_theta;
   old_pos = current_pos;
 
-  if(moveaft != 1 && !nada) {
+
+  if(moveaft != 1 && !nada) { // Get to the tape initally - Same as pt. 1
     switch (cam_signal) {
       case 1: // Tape is not seen
       digitalWrite(7, HIGH);
@@ -133,14 +137,13 @@ void loop() {
       break;
     }
   }
-  else if (moveaft == 0) {
-    if (cam_signal == 1) {
+  else if (moveaft == 0) { // Continue along the blue tape after it reached the start
+    if (cam_signal == 1) { // Tape not seen
       analogWrite(PWM_PinR, 0);
       analogWrite(PWM_PinL, 0);
       endnow = true;
     }
-    else if (cam_signal == 3) {
-      // Centered - Go forward
+    else if (cam_signal == 3) {// Centered - Go forward
       digitalWrite(7, LOW);
       digitalWrite(8, LOW);
       analogWrite(PWM_PinR, 150);
@@ -148,20 +151,20 @@ void loop() {
       hit_center = true;
       delay(500);
     }
-    else if (cam_signal == 2) {
+    else if (cam_signal == 2) { // To the Left
       digitalWrite(7, HIGH);
       digitalWrite(8, LOW);
       analogWrite(PWM_PinR, 19);
       analogWrite(PWM_PinL, 19);
     }
-    else if (cam_signal == 4) {
+    else if (cam_signal == 4) { // To the Right
       digitalWrite(7, LOW);
       digitalWrite(8, HIGH);
       analogWrite(PWM_PinR, 19);
       analogWrite(PWM_PinL, 19);
     }
   }
-  else if (moveaft == 1) {
+  else if (moveaft == 1) { // If it has reached the end of the tape - STOP
     analogWrite(PWM_PinR, 0);
     analogWrite(PWM_PinL, 0);
   }
