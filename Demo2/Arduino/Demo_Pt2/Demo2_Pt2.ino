@@ -91,15 +91,15 @@ void loop() {
       case 1: // Tape is not seen
       digitalWrite(7, HIGH);
       digitalWrite(8, LOW);
-      analogWrite(PWM_PinR, 40);
-      analogWrite(PWM_PinL, 40);
+      analogWrite(PWM_PinR, 30);
+      analogWrite(PWM_PinL, 30);
       break;
   
       case 2: // Tape is to the Left
       digitalWrite(7, HIGH);
       digitalWrite(8, LOW);
-      analogWrite(PWM_PinR, 20);
-      analogWrite(PWM_PinL, 20);
+      analogWrite(PWM_PinR, 19);
+      analogWrite(PWM_PinL, 19);
       break;
   
       case 3:
@@ -115,8 +115,8 @@ void loop() {
       case 4: // Tape is to the Right
       digitalWrite(7, LOW);
       digitalWrite(8, HIGH);
-      analogWrite(PWM_PinR, 20);
-      analogWrite(PWM_PinL, 20);
+      analogWrite(PWM_PinR, 19);
+      analogWrite(PWM_PinL, 19);
       break;
   
       case 5: // Stop
@@ -125,7 +125,7 @@ void loop() {
       if(!nada) {
         analogWrite(PWM_PinR, 70);
         analogWrite(PWM_PinL, 70);
-        delay(600);
+        delay(400);
       }
       analogWrite(PWM_PinR, 0);
       analogWrite(PWM_PinL, 0);
@@ -151,49 +151,20 @@ void loop() {
     else if (cam_signal == 2) {
       digitalWrite(7, HIGH);
       digitalWrite(8, LOW);
-      analogWrite(PWM_PinR, 20);
-      analogWrite(PWM_PinL, 20);
+      analogWrite(PWM_PinR, 19);
+      analogWrite(PWM_PinL, 19);
     }
     else if (cam_signal == 4) {
       digitalWrite(7, LOW);
       digitalWrite(8, HIGH);
-      analogWrite(PWM_PinR, 20);
-      analogWrite(PWM_PinL, 20);
+      analogWrite(PWM_PinR, 19);
+      analogWrite(PWM_PinL, 19);
     }
   }
   else if (moveaft == 1) {
     analogWrite(PWM_PinR, 0);
     analogWrite(PWM_PinL, 0);
   }
-
- /* else{
-    if (cam_signal == 1) {
-      analogWrite(PWM_PinR, 0);
-      analogWrite(PWM_PinL, 0);
-    }
-    else if (cam_signal == 3) {
-      // Centered - Go forward
-      digitalWrite(7, LOW);
-      digitalWrite(8, LOW);
-      analogWrite(PWM_PinR, 150);
-      analogWrite(PWM_PinL, 150);
-      hit_center = true;
-      delay(500);
-    }
-    else if (cam_signal == 2) {
-      digitalWrite(7, HIGH);
-      digitalWrite(8, LOW);
-      analogWrite(PWM_PinR, 20);
-      analogWrite(PWM_PinL, 20);
-    }
-    else if (cam_signal == 4) {
-      digitalWrite(7, LOW);
-      digitalWrite(8, HIGH);
-      analogWrite(PWM_PinR, 20);
-      analogWrite(PWM_PinL, 20);
-    }
-  }*/
-  
 }
 
 /**********************I2C Communication Methods**************************/
