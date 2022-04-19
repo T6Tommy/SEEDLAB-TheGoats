@@ -15,6 +15,8 @@ uint8_t motor_PWM = 0; //The unsigned integer to be sent to the PWM ports connec
 uint8_t received[RECEIVED_MX];
 uint8_t received_amt = 0;
 
+uint8_t report_counter = 0; // When it reaches 13, data is reported to the serial console.
+
 bool is_tape_detected = 0;
 bool is_cross_detected = 0;
 
@@ -49,6 +51,21 @@ float fromBytes(uint8_t *input_array) {
   return output;
 }
 
+void report_data() {
+  Serial.print(delta_t, 8);
+  Serial.print("\t");
+  Serial.print(vel_l);
+  Serial.print("\t");
+  Serial.print(vel_r);
+  Serial.print("\t");
+  Serial.print(turn_ctrl.get_phi());
+  Serial.print("\t");
+  Serial.print(turn_ctrl.get_phi_error());
+  Serial.print("\t");
+  Serial.print(turn_ctrl.delta_v[1]);
+  Serial.println("");
+}
+
 StateMachine comm = StateMachine();
 
 bool is_tape_within_bounds() {
@@ -67,8 +84,52 @@ void state_parse() {
   if (received[0] == 0x04) is_cross_detected = received[2];
   received_amt = 0;
 }
-void state_new_target() {}
-void state_report() {}
+void state_new_target() {
+  turn_ctrl.reset_phi();
+ }
+void state_report() {
+  report_data();
+ }
+
+void state_standby() {
+  report_counter++;
+}
+
+bool transitionSsbSp() {
+  if (received_amt) return true;
+  else return false;
+}
+
+bool transitionSsbSr() {
+  if (report_counter >= 13) {
+    report_counter = 0;
+    return true;
+  }
+  else return false;
+}
+
+bool transitionSsb() {
+  if(!received_amt && (report_counter < 13)) return true;
+  else return false;
+}
+
+bool transitionSpSnt() {
+  if(turn_ctrl.is_error_0()) return true;
+  else return false;
+}
+
+bool transitionSpSsb() {
+  if(!turn_ctrl.is_error_0()) return true;
+  else return false;
+}
+
+bool transitionSntSsb() {
+  return true;
+}
+
+bool transitionSrSsb() {
+  return true;
+}
 
 // States for the actuation machine
 void state0() {
@@ -189,6 +250,7 @@ bool transitionS5S6() {
 State* Sp = comm.addState(&state_parse);
 State* Snt = comm.addState(&state_new_target);
 State* Sr = comm.addState(&state_report);
+State* Ssb = comm.addState(&state_standby);
 
 bool is_actuate_per_elapsed = 1;
 
@@ -263,6 +325,15 @@ void transitions_init() {
 
   // S5->Si
   S5->addTransition(&transitionS5S6, S6);
+
+  //Communications Transitions
+  Ssb->addTransition(&transitionSsbSp, Sp);
+  Ssb->addTransition(&transitionSsbSr, Sr);
+  Ssb->addTransition(&transitionSsb, Ssb);
+  Sp->addTransition(&transitionSpSnt, Snt);
+  Sp->addTransition(&transitionSpSsb, Ssb);
+  Snt->addTransition(&transitionSntSsb, Ssb);
+  Sr->addTransition(&transitionSrSsb, Ssb);
 }
 
 void update_motors(float voltage) {
@@ -300,24 +371,9 @@ void setup() {
   Serial.println("Initialization complete."); // Let the user know we're ready.
 }
 
-void report_data() {
-  Serial.print(delta_t, 8);
-  Serial.print("\t");
-  Serial.print(vel_l);
-  Serial.print("\t");
-  Serial.print(vel_r);
-  Serial.print("\t");
-  Serial.print(turn_ctrl.get_phi());
-  Serial.print("\t");
-  Serial.print(turn_ctrl.get_phi_error());
-  Serial.print("\t");
-  Serial.print(turn_ctrl.delta_v[1]);
-  Serial.println("");
-}
-
 void loop() {
   delay(8);
   calc_deltas();
   actuate.run();
-  //report_data();
+  comm.run();
 }
