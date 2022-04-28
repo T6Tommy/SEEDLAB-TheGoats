@@ -12,17 +12,27 @@ Encoder myEncL(2, 11);
 float magnitude_voltage = 0;  //Voltage magnitude, intended for moving the plant forward
 uint8_t motor_PWM = 0; //The unsigned integer to be sent to the PWM ports connected to the motors.
 
+uint8_t received_old[RECEIVED_MX];
 uint8_t received[RECEIVED_MX];
 uint8_t received_amt = 0;
+
+//uint8_t cnt_right_angles = 0;
 
 uint8_t report_counter = 0; // When it reaches 13, data is reported to the serial console.
 
 bool is_tape_detected = 0;
 bool is_cross_detected = 0;
+bool is_turn_sharp = 0;
+//bool is_tape_broken = 0;
+bool is_tape_ended = 0;
+bool success = 0;
 
-float angle_bounds = 0.1;
+bool debug_actuation = 1;
+bool debug_comm = 0;
+
+float angle_bounds = 0.15;
 float angle_desired = 0;
-float velocity_desired = 0.08;
+float velocity_desired = 2.5;
 float vel_l = 0;
 float vel_r = 0;
 double delta_t = 0;
@@ -35,7 +45,7 @@ int pos_l[2] = {0, 0};
 int pos_r[2] = {0, 0};
 
 Encoder enc_r(3,5);
-Encoder enc_l(2,11);
+Encoder enc_l(11,2);
 
 float fromBytes(uint8_t *input_array) {
   uint32_t input = 0; // Buffer for storing four bytes as one variable
@@ -51,21 +61,6 @@ float fromBytes(uint8_t *input_array) {
   return output;
 }
 
-void report_data() {
-  Serial.print(delta_t, 8);
-  Serial.print("\t");
-  Serial.print(vel_l);
-  Serial.print("\t");
-  Serial.print(vel_r);
-  Serial.print("\t");
-  Serial.print(turn_ctrl.get_phi());
-  Serial.print("\t");
-  Serial.print(turn_ctrl.get_phi_error());
-  Serial.print("\t");
-  Serial.print(turn_ctrl.delta_v[1]);
-  Serial.println("");
-}
-
 StateMachine comm = StateMachine();
 
 bool is_tape_within_bounds() {
@@ -79,16 +74,19 @@ void state_parse() {
   uint8_t value[4] = {received[2], received[3], received[4], received[5]};
   // For each register, set the associated parameter:
   if (received[0] == 0x01) velocity_desired = fromBytes(value);
-  if (received[0] == 0x02) angle_desired = fromBytes(value);
-  if (received[0] == 0x03) is_tape_detected = received[2];
-  if (received[0] == 0x04) is_cross_detected = received[2];
-  received_amt = 0;
+  if (received[0] == 0x02) angle_desired = -fromBytes(value);
+  if (received[0] == 0x03) is_tape_detected = received[1];
+  if (received[0] == 0x04) is_cross_detected = received[1];
+  if (received[0] == 0x05) is_turn_sharp = received[1];
+  //if (received[0] == 0x06) is_tape_broken = received[1];b
+  if (received[0] == 0x07) is_tape_ended = received[1];
+  for(int i = 0; i < RECEIVED_MX; i++) received_old[i] = received[i];
 }
 void state_new_target() {
-  turn_ctrl.reset_phi();
+  // Placeholder state
  }
 void state_report() {
-  report_data();
+  if(debug_actuation) report_data();
  }
 
 void state_standby() {
@@ -96,31 +94,24 @@ void state_standby() {
 }
 
 bool transitionSsbSp() {
-  if (received_amt) return true;
+  if ((report_counter < 13)) return true;
   else return false;
 }
 
 bool transitionSsbSr() {
   if (report_counter >= 13) {
     report_counter = 0;
-    return true;
   }
   else return false;
 }
 
 bool transitionSsb() {
-  if(!received_amt && (report_counter < 13)) return true;
-  else return false;
-}
-
-bool transitionSpSnt() {
-  if(turn_ctrl.is_error_0()) return true;
+  if(!i2c_new_msg() && (report_counter < 13)) return true;
   else return false;
 }
 
 bool transitionSpSsb() {
-  if(!turn_ctrl.is_error_0()) return true;
-  else return false;
+  return true;
 }
 
 bool transitionSntSsb() {
@@ -131,6 +122,13 @@ bool transitionSrSsb() {
   return true;
 }
 
+bool i2c_new_msg(){
+  for(int i = 0; i < RECEIVED_MX; i++){
+    if(received[i] != received_old[i]) return true;
+  }
+  return false;
+}
+
 // States for the actuation machine
 void state0() {
   delay(100);
@@ -138,27 +136,27 @@ void state0() {
 
 void state1() {
   turn_ctrl.tick(&angle_atom, &delta_t, &vel_l, &vel_r);
-  update_motors(turn_ctrl.delta_v[1]);
+  update_motors(TURNMODE,turn_ctrl.delta_v[1]);
 }
 void state2() {
   turn_ctrl.tick(&angle_desired, &delta_t, &vel_l, &vel_r);
-  update_motors(turn_ctrl.delta_v[1]);
+  update_motors(TURNMODE,turn_ctrl.delta_v[1]);
   }
 void state3() {
   vel_ctrl.tick(&velocity_desired, &delta_t, &vel_l, &vel_r);
-  update_motors(vel_ctrl.mag_v[1]);
+  update_motors(LINEMODE,vel_ctrl.mag_v[1]);
   }
 void state4() {
-  delay(1000);
+  float right_angle = angle_atom;
+  turn_ctrl.tick(&right_angle, &delta_t, &vel_l, &vel_r);
+  update_motors(TURNMODE,turn_ctrl.delta_v[1]);
   }
 void state5() {
-  vel_ctrl.tick(&velocity_desired, &delta_t, &vel_l, &vel_r);
-  update_motors(vel_ctrl.mag_v[1]);
-  }
-void state6() {
+  delay(300);
   velocity_desired = 0;
+  success = 1;
   vel_ctrl.tick(&velocity_desired, &delta_t, &vel_l, &vel_r);
-  update_motors(vel_ctrl.mag_v[1]);
+  update_motors(LINEMODE, 0);
   }
 
 bool transitionS0() {
@@ -178,15 +176,11 @@ bool transitionS2() {
   else return false;  // Continue to turn until the tape is centered...
 }
 bool transitionS3() {
-  if(is_tape_detected && is_tape_within_bounds) return true;
-  else return false;  // Continue to move forward...
-}
-bool transitionS5() {
-  if(is_cross_detected) return true;
-  else return false;
-}
-bool transitionS6() {
-  return true;
+  if(is_tape_detected && is_tape_within_bounds()) return true;
+  else {
+    turn_ctrl.reset_phi();
+    return false;
+  }
 }
 
 // S0->Si
@@ -195,27 +189,27 @@ bool transitionS0S1() {
   else return false;
 }
 bool transitionS0S2() {
-  if(angle_desired && is_tape_detected && !is_tape_within_bounds) return true;
+  if(angle_desired && is_tape_detected && !is_tape_within_bounds()) return true;
   else return false;  // Data has been recieved, and the tape is off center. Turn.
 }
 bool transitionS0S3() {
-  if(angle_desired && is_tape_detected && is_tape_within_bounds) return true;
+  if(angle_desired && is_tape_detected && is_tape_within_bounds()) return true;
   else return false;  // Data has been recieved, and the tape is centered. Forward.
 }
 
 // S1->Si
 bool transitionS1S2() {
-  if(is_tape_detected && !is_tape_within_bounds) return true;
+  if(is_tape_detected && !is_tape_within_bounds()) return true;
   else return false;  // The tape is now visible. Turn to center it.
 }
 bool transitionS1S3() {
-  if(is_tape_detected && is_tape_within_bounds) return true;
+  if(is_tape_detected && is_tape_within_bounds()) return true;
   else return false;  // The tape is now centered. Move forward.
 }
 
 // S2->Si
 bool transitionS2S3() {
-  if(is_tape_detected && is_tape_within_bounds) return true;
+  if(is_tape_detected && is_tape_within_bounds()) return true;
   else return false;  // The tape is now centered. Move forward.
 }
 bool transitionS2S1() {
@@ -225,26 +219,32 @@ bool transitionS2S1() {
 
 // S3->Si
 bool transitionS3S2() {
-  if(is_tape_detected && !is_tape_within_bounds) return true;
+  if(!is_tape_within_bounds()) return true;
   else return false;  // The tape is off-center.  Center it.
 }
-bool transitionS3S4() {
-  if(!is_tape_detected) return true;
-  else return false;  // The tape has disappeared from view. We have probably reached the cross.
+bool transitionS3S5() {
+  return is_tape_ended;
 }
+
+/*
+bool transitionS3S4() {
+  if(is_turn_sharp) {
+    turn_ctrl.reset_phi();
+    return true;
+  }
+  else return false;
+}
+
 
 // S4->Si
-bool transitionS4S5() {
-  return is_cross_detected;  // We have detected the cross. Move forward until we don't see it anymore.
+bool transitionS4S3() {
+  if(turn_ctrl.is_error_0()) {
+//    cnt_right_angles++;
+    return true;
+  }
+  return false;
 }
-bool transitionS4S6() {
-  return !is_cross_detected;  // If you don't see the cross at this point, STOP!!!
-}
-
-// S5->Si
-bool transitionS5S6() {
-  return !is_cross_detected;
-}
+*/
 
 
 State* Sp = comm.addState(&state_parse);
@@ -260,9 +260,9 @@ State* S0 = actuate.addState(&state0);
 State* S1 = actuate.addState(&state1);
 State* S2 = actuate.addState(&state2);
 State* S3 = actuate.addState(&state3);
-State* S4 = actuate.addState(&state4);
+//State* S4 = actuate.addState(&state4);
 State* S5 = actuate.addState(&state5);
-State* S6 = actuate.addState(&state6);
+//State* S6 = actuate.addState(&state6);
 
 void calc_deltas() {
   pos_l[0] = pos_l[1];
@@ -279,28 +279,48 @@ void calc_deltas() {
 }
 
 void receiveEvent(int count) {
-  Serial.print("Data received:");
+  //Serial.print("Data received:");
   uint8_t i = 0; // Index for the number of bytes received
   while (Wire.available()) {
     received[i] = Wire.read(); // take the next byte
-    Serial.print("0x");
-    Serial.print(received[i], HEX); //print that byte as a hexadecimal
-    Serial.print(" ");
+    if(debug_comm){
+      Serial.print("0x");
+      Serial.print(received[i], HEX); //print that byte as a hexadecimal
+      Serial.print(" ");
+    }
     i++; // increment the index
   }
   received_amt = i; // The index is now the length of the message
-  Serial.println(""); // end the line on the serial console
+  if(debug_comm) Serial.println(""); // end the line on the serial console
+  //if(received[0] == 0x07) Serial.println("Yep.");
 }
 
+void sendEvent() {
+  Wire.write(success);
+}
 
 void transitions_init() {
+  
+  //Communications Transitions
+  Ssb->addTransition(&transitionSsbSp, Sp);
+  Ssb->addTransition(&transitionSsbSr, Sr);
+  Ssb->addTransition(&transitionSsb, Ssb);
+  Sp->addTransition(&transitionSpSsb, Ssb);
+  Snt->addTransition(&transitionSntSsb, Ssb);
+  Sr->addTransition(&transitionSrSsb, Ssb);
+
+  //S3->addTransition(&transitionS3S4, S4);
+  //S2->addTransition(&transitionS2S4, S4);
+  S3->addTransition(&transitionS3S5, S5); // The tape has disappeared from view. We have probably reached the cross
+  S3->addTransition(&transitionS3S2, S2); // The tape is off-center.  Center it.
+  S2->addTransition(&transitionS2S3, S3); // The tape is now centered. Move forward.
+  
+  S2->addTransition(&transitionS2S1, S1); // The tape has moved out of view. Search for the tape
   // Self-transitions
   S0->addTransition(&transitionS0, S0); // Continue to wait for data...
   S1->addTransition(&transitionS1, S1); // Continue to turn until tape appears...
   S2->addTransition(&transitionS2, S2); // Continue to turn until the tape is centered...
   S3->addTransition(&transitionS3, S3); // Continue to move forward...
-  S5->addTransition(&transitionS5, S5);
-  S6->addTransition(&transitionS6, S6);
 
   // S0->Si
   S0->addTransition(&transitionS0S1, S1); // Data has been recieved, and no tape is detected.  Turn.
@@ -310,50 +330,76 @@ void transitions_init() {
   // S1->Si
   S1->addTransition(&transitionS1S2, S2); // The tape is now visible. Turn to center it.
   S1->addTransition(&transitionS1S3, S3); // The tape is now centered. Move forward.
-
-  // S2->Si
-  S2->addTransition(&transitionS2S3, S3); // The tape is now centered. Move forward.
-  S2->addTransition(&transitionS2S1, S1); // The tape has moved out of view. Search for the tape.
+  
 
   // S3->Si
-  S3->addTransition(&transitionS3S2, S2); // The tape is off-center.  Center it.
-  S3->addTransition(&transitionS3S4, S4); // The tape has disappeared from view. We have probably reached the cross.
+
+
+
 
   // S4->Si
-  S4->addTransition(&transitionS4S5, S5); // We have detected the cross. Move forward until we don't see it anymore.
-  S4->addTransition(&transitionS4S6, S6); // If you don't see the cross at this point, STOP!!!
+  //S4->addTransition(&transitionS4S3, S3); // We have detected the cross. Move forward until we don't see it anymore.
 
-  // S5->Si
-  S5->addTransition(&transitionS5S6, S6);
-
-  //Communications Transitions
-  Ssb->addTransition(&transitionSsbSp, Sp);
-  Ssb->addTransition(&transitionSsbSr, Sr);
-  Ssb->addTransition(&transitionSsb, Ssb);
-  Sp->addTransition(&transitionSpSnt, Snt);
-  Sp->addTransition(&transitionSpSsb, Ssb);
-  Snt->addTransition(&transitionSntSsb, Ssb);
-  Sr->addTransition(&transitionSrSsb, Ssb);
 }
 
-void update_motors(float voltage) {
-  int pwm = float(voltage/4)*255;
+void update_motors(uint8_t mode, float voltage) {
+  int pwm = float(voltage/v_max)*255;
+  uint8_t pwm_minimum = 30;
+  if(abs(pwm) < pwm_minimum && abs(pwm) > 0) pwm = (abs(pwm)/pwm)*pwm_minimum;
   //if(voltage > v_max) pwm = 255;
   //if(voltage < -(v_max)) pwm = -255;
   //Serial.println(pwm);
-  if (pwm >= 0) {
-    digitalWrite(MRDIR, LOW);
-    digitalWrite(MLDIR, HIGH);
-  }
-  else {
-    digitalWrite(MRDIR, HIGH);
-    digitalWrite(MLDIR, LOW); 
+  if(mode == TURNMODE) {
+    if (pwm >= 0) {
+      digitalWrite(MRDIR, LOW);
+      digitalWrite(MLDIR, HIGH);
+    }
+    else {
+      digitalWrite(MRDIR, HIGH);
+      digitalWrite(MLDIR, LOW); 
+    }
   }
 
+  if(mode == LINEMODE) {
+    if (pwm < 0) {
+      digitalWrite(MRDIR, HIGH);
+      digitalWrite(MLDIR, HIGH);
+    }
+    else {
+      digitalWrite(MRDIR, LOW);
+      digitalWrite(MLDIR, LOW); 
+    }
+  }
   analogWrite(MLPWM, abs(pwm));
   analogWrite(MRPWM, abs(pwm));
   
 }
+
+void report_data() {
+  Serial.print(actuate.currentState);
+  Serial.print("\t");
+  Serial.print(is_tape_ended);
+  Serial.print("\t");
+  Serial.print(is_tape_within_bounds());
+  Serial.print("\t");
+  Serial.print(is_tape_detected);
+  Serial.print("\t");
+  Serial.print(is_turn_sharp);
+  Serial.print("\t");
+  Serial.print(is_tape_ended);
+  Serial.print("\t");
+  Serial.print(vel_l);
+  Serial.print("\t");
+  Serial.print(vel_r);
+  Serial.print("\t");
+  Serial.print(turn_ctrl.get_phi());
+  Serial.print("\t");
+  Serial.print(turn_ctrl.get_phi_error());
+  Serial.print("\t");
+  Serial.print(angle_desired);
+  Serial.println("");
+}
+
 
 void setup() {
   Serial.begin(57600);
@@ -368,6 +414,7 @@ void setup() {
 
   Wire.begin(PERIPH_ADDRESS); // Initialize I2C
   Wire.onReceive(receiveEvent); // Define interupt method for receiving data
+  Wire.onRequest(sendEvent);
   Serial.println("Initialization complete."); // Let the user know we're ready.
 }
 
@@ -376,4 +423,8 @@ void loop() {
   calc_deltas();
   actuate.run();
   comm.run();
+  /*report_data();
+  float right_angle = angle_atom*2;
+  turn_ctrl.tick(&right_angle, &delta_t, &vel_l, &vel_r);
+  if(!turn_ctrl.is_error_0()) update_motors(TURNMODE,turn_ctrl.delta_v[1]);*/
 }

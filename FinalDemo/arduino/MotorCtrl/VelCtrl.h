@@ -4,8 +4,8 @@
 
 // Fundamental control system steps
 class Vel_Ctrl {
-    const float Ki = 0.6838;
-    const float Kp = 0.2111;
+    const float Ki = 0.2;
+    const float Kp = 1;
 
     float rhodot [2] = {0,0};
     float rhodot_statevar [2] = {0,0};

@@ -18,6 +18,9 @@
 // Period for actuation state machine (ms):
 #define T 8
 
+#define TURNMODE 0
+#define LINEMODE 1
+
 // Period for communication state machine (ms):
 #define U 100
 
@@ -27,6 +30,6 @@ const double rad_enc_step = 2 * 3.14159265359 / 3200; // The encoder has 3200 st
 
 const float wheel_radius = 2.967; //Radius of the driving wheels
 const float wheel_span = 10.46; // The distance between the wheels
-const float v_max = 8; // An approximation of the maximum achievable voltage to drive the motors with.
-const float angle_atom = 3.14159265359/8;
+const float v_max = 6; // An approximation of the maximum achievable voltage to drive the motors with.
+const float angle_atom = (3.14159265359/(8));
 #endif

@@ -2,15 +2,13 @@
 #include "constants.h"
 
 void Vel_Ctrl::control(float* velocity_desired, double* delta_t, float* vel_l, float* vel_r) {
-  rhodot[1] = (*vel_l-*vel_r)/2;
+  rhodot[1] = (*vel_l+*vel_r)/2;
   rhodot_error[1] = *velocity_desired - rhodot[1];
+  //if(rhodot_error[1] < 0) rhodot_error[1] = 0;
   
   rhodot_statevar[1] = rhodot_statevar[0] + (*delta_t)*rhodot_error[0];
   
-  if (mag_v[1] <= v_max)
-    mag_v[1] = Ki * rhodot_statevar[1] + Kp * rhodot_error[1];
-  else
-    mag_v[1] = mag_v[0]; 
+  mag_v[1] = Ki * rhodot_statevar[1] + Kp * rhodot_error[1];
 }
 
 void Vel_Ctrl::tick(float* velocity_desired, double* delta_t, float* vel_l, float* vel_r) {
