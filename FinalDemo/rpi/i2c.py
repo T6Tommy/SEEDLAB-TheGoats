@@ -11,6 +11,7 @@ Description:    i2c.py takes a floating point angle input (radians) and sends a
 """
 from enum import Enum
 import sys
+import os
 import board
 import time
 import struct
@@ -21,16 +22,12 @@ from smbus import SMBus
 lcd_columns = 16
 lcd_rows = 2
 
-ada = board.I2C() #initialize LCD library
-#smb = SMBus(1) #initialize SMBus
-
-lcd = character_lcd.Character_LCD_RGB_I2C(ada, lcd_columns, lcd_rows)
-lcd.color = [255, 171 , 0] # Set the color to amber(?)
+smb = SMBus(1) #initialize SMBus
 
 MOTOR_ADDR = 0x04
 
 # Motor command directory. values are to be used in the i2c register field:
-CMD_FDBK = 0x01
+CMD_VELOC = 0x01
 CMD_TURN = 0x02
 CMD_TAPE = 0x03
 CMD_CROSS = 0x04
@@ -40,26 +37,28 @@ CMD_CROSS = 0x04
 def command (register, value):
     if(register <= 0x02):
         message = list(bytearray(struct.pack("f", value))) # convert float to a list of bytes
-        print(["0x%02x" % b for b in message])
+        #print(["0x%02x" % b for b in message])
+        try:
+            smb.write_block_data(MOTOR_ADDR, register, message) # send the command
+        except IOError:
+            print("Failed to communicate with motor controller.") # i2c failure
     else:
-        message = value;
-    try:
-        smb.write_block_data(MOTOR_ADDR, register, message) # send the command
-    except IOError:
-        print("Failed to communicate with motor controller.") # i2c failure
+        message = list(bytearray(value))
+        try:
+            smb.write_block_data(MOTOR_ADDR, register, message) # send the command
+        except IOError:
+            print("Failed to communicate with motor controller.") # i2c failure
 
-def demo(angle, distance):
+def demo(angle, isTape):
     # Prompt arduino to move the wheel to the specified angle:
     print("Sending command for turning %f radians:" % angle)
     command(CMD_TURN, angle)
-    time.sleep(1)
-    print("Sending command for moving %f meters:" % distance)
-    command(CMD_FDBK, distance)
-    time.sleep(1)
-    lcd.clear()
+    time.sleep(0.5)
+    command(CMD_TAPE, isTape)
+    time.sleep(0.5)
 
 angle = 0
-distance = 0
+isTape = 0
 
 def main():
     if(len(sys.argv) > 1):
@@ -68,26 +67,20 @@ def main():
             distance = float(sys.argv[2])
         except ValueError:
             print("Invalid input arguments!")
-        if(angle and distance):
-            demo(angle, distance)
+        if(angle):
+            demo(angle)
         time.sleep(1)
         sys.exit()
     while(True):
         while(True):
             try: # Prompt user input
                 angle = float(input("Angle: "))
+                isTape = int(input("isTape: "))
                 break
             except ValueError: # The user did not enter a float!
                 print ("Invalid floating-point value!")
                 continue
-        while (True):
-            try: # Prompt user input
-                distance = float(input("Distance: "))
-                break
-            except ValueError: # The user did not enter a float!
-                print ("Invalid floating-point value!")
-                continue
-        demo(angle, distance)
+        demo(angle, isTape)
 
 if __name__ == "__main__":
         main()
