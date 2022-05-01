@@ -23,7 +23,7 @@ g = PiCamera.awb_gains
 PiCamera.awb_mode = 'off'
 PiCamera.awb_gains = g
 
-PiCamera.resolution = (40,40)
+PiCamera.resolution = (100,100)
 PiCamera.framerate = 24
 
 #Start live video
@@ -39,12 +39,7 @@ Turn_old = 0
 timer = 0
 timer_old = 0
 
-Bottom = 0
-Go = 0
-#Try = 0
-Ok = 0
 Stop = 0
-Right = 0
 
 # Send the Arduino a message that it's time to start:
 i2c.command(i2c.CMD_TURN, float(3.14159/8))
@@ -82,8 +77,6 @@ while True:
     img3 = cv.morphologyEx(img3, cv.MORPH_CLOSE, kernel)
     new = cv.morphologyEx(edge, cv.MORPH_CLOSE, kernel1)
 
-
-    
     #Threshold to make frame binary
     ret,thresh1 = cv.threshold(img3,1,255,cv.THRESH_BINARY)
     nonzero = cv.findNonZero(thresh1)
@@ -109,64 +102,48 @@ while True:
             cv.drawContours(contour, [finalContours], 0, (0,0,255), 1)
             peri = cv.arcLength(finalContours, True)
             approx = cv.approxPolyDP(finalContours, 0.03 * peri, True)
-            if len(approx) >= 9:
+            if len(approx) > 9:
+                print(len(approx))
                 i2c.command(0x07,1)
+                sleep(0.5)
           #  if not CrossReached:
            #     CrossReached = 1
            #     print("Cross reached.")
             #    os.system(cmd)
-                
 
-    #x,y coordinates
-    #x = round(xy[0],2)
-    #y = round(xy[1],2)
     #Displays live video
     cv.imshow('frame',res)
-
-    #stop = 9
-    #Go = 9
 
     if xy[0] == 0 and xy[1] == 0:
         #print("Searching...")
         Turn= 1 #Continue turning till blue tape is found
         i2c.command(i2c.CMD_TAPE, 0)
+        
     if abs(radians) < 0.4:
         #print("Turning Left")
         Turn = 2 #Continue turning left because tape is found
+        #print("see")
         i2c.command(i2c.CMD_TAPE, 1)
     else:
         i2c.command(i2c.CMD_TAPE,0)
-    #elif radians < -0.6:
-        #print("Turning Right")
-        #Turn = 4 #Tape is somehow on the right of camera
     
 
     if xy[0] == 0 and xy[1] == 0:
         Right = 0
-    else:
-        Y,X = np.nonzero(thresh1)
-        Right = np.amax(X,0)
-
-
-    if xy[0] == 0 and xy[1] == 0:
         Max = 0
         Min = 0
     else:
         Y,X = np.nonzero(thresh1)
+        Right = np.amax(X,0)
         Max = np.amax(Y,0)          #Finds front edge of tape
         Min = np.amin(Y,0)
 
-    if Right >= 350 and Min >= 200:
-        i2c.command(0x05, 1)
-    else:
-        i2c.command(0x05, 0)
-
     #timer for sending angle
     timer = time.perf_counter()
-    if (timer > timer_old+0.1):
+    if timer > timer_old+0.1:
        i2c.command(0x02, radians)
-    timer_old = timer
-
+       #print("Sent.")
+       timer_old = timer
 
     #print(stop)
     #print(Turn)
@@ -174,6 +151,7 @@ while True:
     #print(Max)
     #print (Min)
     #print(radians)
+    
     #To end live video
     if cv.waitKey(1) & 0xFF == ord('q'):
         break

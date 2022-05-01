@@ -18,6 +18,7 @@ import struct
 import adafruit_character_lcd.character_lcd_rgb_i2c as character_lcd
 
 from smbus import SMBus
+from time import sleep
 
 lcd_columns = 16
 lcd_rows = 2
@@ -48,6 +49,7 @@ def command (register, value):
             smb.write_block_data(MOTOR_ADDR, register, message) # send the command
         except IOError:
             print("Failed to communicate with motor controller.") # i2c failure
+    #sleep(0.1)
 
 def demo(angle, isTape):
     # Prompt arduino to move the wheel to the specified angle:
