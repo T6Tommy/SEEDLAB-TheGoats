@@ -9,6 +9,8 @@
 Encoder myEncR(3, 5);
 Encoder myEncL(2, 11);
 
+float l_offset_coeff = 0.15;
+
 float magnitude_voltage = 0;  //Voltage magnitude, intended for moving the plant forward
 uint8_t motor_PWM = 0; //The unsigned integer to be sent to the PWM ports connected to the motors.
 
@@ -17,6 +19,7 @@ uint8_t received[RECEIVED_MX];
 uint8_t received_amt = 0;
 
 //uint8_t cnt_right_angles = 0;
+uint8_t cross_fwd_cnt = 0;
 
 uint8_t report_counter = 0; // When it reaches 13, data is reported to the serial console.
 
@@ -30,9 +33,10 @@ bool success = 0;
 bool debug_actuation = 1;
 bool debug_comm = 0;
 
-float angle_bounds = 0.15;
+float angle_bounds = 0.1;
 float angle_desired = 0;
-float velocity_desired = 2.5;
+
+float velocity_desired = 2;
 float vel_l = 0;
 float vel_r = 0;
 double delta_t = 0;
@@ -61,7 +65,7 @@ float fromBytes(uint8_t *input_array) {
   return output;
 }
 
-StateMachine comm = StateMachine();
+//StateMachine comm = StateMachine();
 
 bool is_tape_within_bounds() {
   if(abs(angle_desired) < angle_bounds) return true;
@@ -69,7 +73,7 @@ bool is_tape_within_bounds() {
 }
 
 // States for the communications machine
-void state_parse() {
+void parse() {
   // We expect bytes 3-6 to be a floating point value (4 bytes):
   uint8_t value[4] = {received[2], received[3], received[4], received[5]};
   // For each register, set the associated parameter:
@@ -78,56 +82,14 @@ void state_parse() {
   if (received[0] == 0x03) is_tape_detected = received[1];
   if (received[0] == 0x04) is_cross_detected = received[1];
   if (received[0] == 0x05) is_turn_sharp = received[1];
-  //if (received[0] == 0x06) is_tape_broken = received[1];b
-  if (received[0] == 0x07) is_tape_ended = received[1];
+  //if (received[0] == 0x06) is_tape_broken = received[1];
+  if (received[0] == 0x07 && received[1] == 0x01 && received[2] == 0x0 ) is_tape_ended = received[1];
   for(int i = 0; i < RECEIVED_MX; i++) received_old[i] = received[i];
 }
-void state_new_target() {
-  // Placeholder state
- }
-void state_report() {
+
+void report() {
   if(debug_actuation) report_data();
  }
-
-void state_standby() {
-  report_counter++;
-}
-
-bool transitionSsbSp() {
-  if ((report_counter < 13)) return true;
-  else return false;
-}
-
-bool transitionSsbSr() {
-  if (report_counter >= 13) {
-    report_counter = 0;
-  }
-  else return false;
-}
-
-bool transitionSsb() {
-  if(!i2c_new_msg() && (report_counter < 13)) return true;
-  else return false;
-}
-
-bool transitionSpSsb() {
-  return true;
-}
-
-bool transitionSntSsb() {
-  return true;
-}
-
-bool transitionSrSsb() {
-  return true;
-}
-
-bool i2c_new_msg(){
-  for(int i = 0; i < RECEIVED_MX; i++){
-    if(received[i] != received_old[i]) return true;
-  }
-  return false;
-}
 
 // States for the actuation machine
 void state0() {
@@ -146,17 +108,14 @@ void state3() {
   vel_ctrl.tick(&velocity_desired, &delta_t, &vel_l, &vel_r);
   update_motors(LINEMODE,vel_ctrl.mag_v[1]);
   }
-void state4() {
-  float right_angle = angle_atom;
-  turn_ctrl.tick(&right_angle, &delta_t, &vel_l, &vel_r);
-  update_motors(TURNMODE,turn_ctrl.delta_v[1]);
-  }
+
 void state5() {
-  delay(300);
-  velocity_desired = 0;
-  success = 1;
+  cross_fwd_cnt++;
+  if(cross_fwd_cnt >= int((1500)/(velocity_desired*T))){
+    velocity_desired = 0;
+  }
   vel_ctrl.tick(&velocity_desired, &delta_t, &vel_l, &vel_r);
-  update_motors(LINEMODE, 0);
+  update_motors(LINEMODE, velocity_desired);
   }
 
 bool transitionS0() {
@@ -213,14 +172,12 @@ bool transitionS2S3() {
   else return false;  // The tape is now centered. Move forward.
 }
 bool transitionS2S1() {
-  if(!is_tape_detected) return true;
-  else return false;  // The tape has moved out of view. Search for the tape.
+  return !is_tape_detected; // The tape has moved out of view. Search for the tape.
 }
 
 // S3->Si
 bool transitionS3S2() {
-  if(!is_tape_within_bounds()) return true;
-  else return false;  // The tape is off-center.  Center it.
+  return !is_tape_within_bounds();  // The tape is off-center.  Center it.
 }
 bool transitionS3S5() {
   return is_tape_ended;
@@ -246,11 +203,6 @@ bool transitionS4S3() {
 }
 */
 
-
-State* Sp = comm.addState(&state_parse);
-State* Snt = comm.addState(&state_new_target);
-State* Sr = comm.addState(&state_report);
-State* Ssb = comm.addState(&state_standby);
 
 bool is_actuate_per_elapsed = 1;
 
@@ -295,27 +247,14 @@ void receiveEvent(int count) {
   //if(received[0] == 0x07) Serial.println("Yep.");
 }
 
-void sendEvent() {
-  Wire.write(success);
-}
-
 void transitions_init() {
-  
-  //Communications Transitions
-  Ssb->addTransition(&transitionSsbSp, Sp);
-  Ssb->addTransition(&transitionSsbSr, Sr);
-  Ssb->addTransition(&transitionSsb, Ssb);
-  Sp->addTransition(&transitionSpSsb, Ssb);
-  Snt->addTransition(&transitionSntSsb, Ssb);
-  Sr->addTransition(&transitionSrSsb, Ssb);
-
   //S3->addTransition(&transitionS3S4, S4);
   //S2->addTransition(&transitionS2S4, S4);
+  S2->addTransition(&transitionS2S1, S1); // The tape has moved out of view. Search for the tape
   S3->addTransition(&transitionS3S5, S5); // The tape has disappeared from view. We have probably reached the cross
   S3->addTransition(&transitionS3S2, S2); // The tape is off-center.  Center it.
   S2->addTransition(&transitionS2S3, S3); // The tape is now centered. Move forward.
   
-  S2->addTransition(&transitionS2S1, S1); // The tape has moved out of view. Search for the tape
   // Self-transitions
   S0->addTransition(&transitionS0, S0); // Continue to wait for data...
   S1->addTransition(&transitionS1, S1); // Continue to turn until tape appears...
@@ -344,7 +283,7 @@ void transitions_init() {
 
 void update_motors(uint8_t mode, float voltage) {
   int pwm = float(voltage/v_max)*255;
-  uint8_t pwm_minimum = 30;
+  uint8_t pwm_minimum = 25;
   if(abs(pwm) < pwm_minimum && abs(pwm) > 0) pwm = (abs(pwm)/pwm)*pwm_minimum;
   //if(voltage > v_max) pwm = 255;
   //if(voltage < -(v_max)) pwm = -255;
@@ -370,7 +309,7 @@ void update_motors(uint8_t mode, float voltage) {
       digitalWrite(MLDIR, LOW); 
     }
   }
-  analogWrite(MLPWM, abs(pwm));
+  analogWrite(MLPWM, abs(pwm*(1+l_offset_coeff)));
   analogWrite(MRPWM, abs(pwm));
   
 }
@@ -392,14 +331,13 @@ void report_data() {
   Serial.print("\t");
   Serial.print(vel_r);
   Serial.print("\t");
-  Serial.print(turn_ctrl.get_phi());
+  Serial.print(angle_desired);
   Serial.print("\t");
   Serial.print(turn_ctrl.get_phi_error());
   Serial.print("\t");
-  Serial.print(angle_desired);
+  Serial.print(turn_ctrl.get_phi());
   Serial.println("");
 }
-
 
 void setup() {
   Serial.begin(57600);
@@ -414,15 +352,19 @@ void setup() {
 
   Wire.begin(PERIPH_ADDRESS); // Initialize I2C
   Wire.onReceive(receiveEvent); // Define interupt method for receiving data
-  Wire.onRequest(sendEvent);
   Serial.println("Initialization complete."); // Let the user know we're ready.
 }
 
 void loop() {
-  delay(8);
+  delay(T);
+  report_counter++;
+  if(report_counter >= 13){
+    parse();
+    report_data();
+    report_counter = 0;
+  }
   calc_deltas();
   actuate.run();
-  comm.run();
   /*report_data();
   float right_angle = angle_atom*2;
   turn_ctrl.tick(&right_angle, &delta_t, &vel_l, &vel_r);

@@ -4,8 +4,8 @@
 
 // Fundamental control system steps
 class Turn_Ctrl {
-    const float Kp = 0.7; //0.6842;
-    const float camera_Kp = 3;//3.409;
+    const float Kp = 0.8; //0.6842;
+    const float camera_Kp = 2.5;//3.409;
     const float error_bounds = 0.2;
 
     float phi [2] = {0,0};
