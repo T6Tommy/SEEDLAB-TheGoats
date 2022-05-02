@@ -1,5 +1,5 @@
 #Aaron Hsu
-#Demo2
+#FinalDemo
 
 #All of the imported modules
 import numpy as np
@@ -12,10 +12,12 @@ import time
 from picamera import PiCamera
 from time import sleep
 
-cmd = 'mpg321 ./Anthem.mp3'
+#Victory Theme
+cmd = 'mpg321 ./StarWarsTheme.mp3'
 
-CrossReached = 0
+#CrossReached = 0
 
+#Auto White Balance
 sleep(2)
 PiCamera.shutter_speed= PiCamera.exposure_speed
 PiCamera.exposure_mode = 'off'
@@ -23,22 +25,27 @@ g = PiCamera.awb_gains
 PiCamera.awb_mode = 'off'
 PiCamera.awb_gains = g
 
+#Pi Camera Resolution
 PiCamera.resolution = (100,100)
 PiCamera.framerate = 24
 
 #Start live video
 cap = cv.VideoCapture(0)
+
 #Checks to see if camera is working
 if not cap.isOpened():
     print("Cannot open camera")
     exit()
 
+#Variables for Turn State
 Turn = 0
 Turn_old = 0
 
+#Variables for timer to send i2c
 timer = 0
 timer_old = 0
 
+#Just a holder
 Stop = 0
 
 # Send the Arduino a message that it's time to start:
@@ -71,6 +78,7 @@ while True:
     #Saving and then reading frame in grayscale
     img2 = cv.imwrite('/home/pi/Desktop/Demo.jpg', res)
     img2 = cv.imread('/home/pi/Desktop/Demo.jpg',0)
+    #For cross detection
     edge = cv.Canny(img2, 90, 130)
     #Uses 'opening' and 'closing' effect on frame
     img3 = cv.morphologyEx(img2, cv.MORPH_OPEN, kernel)
@@ -80,6 +88,7 @@ while True:
     #Threshold to make frame binary
     ret,thresh1 = cv.threshold(img3,1,255,cv.THRESH_BINARY)
     nonzero = cv.findNonZero(thresh1)
+    
     #Takes the mean of the array for coordinates
     xy = cv.mean(nonzero)
     #Equations to find angle
@@ -90,7 +99,8 @@ while True:
     angle = angle * ratio
     radians = math.radians(angle)
     #print(angle)
-
+    
+    #Cross Detection for the end
     if xy[0] == 0 and xy[1] == 0:
         Stop = 0
     else:
@@ -102,23 +112,26 @@ while True:
             cv.drawContours(contour, [finalContours], 0, (0,0,255), 1)
             peri = cv.arcLength(finalContours, True)
             approx = cv.approxPolyDP(finalContours, 0.03 * peri, True)
+            #Sends stop flag
             if len(approx) > 9:
                 print(len(approx))
                 i2c.command(0x07,1)
                 sleep(0.5)
-          #  if not CrossReached:
-           #     CrossReached = 1
-           #     print("Cross reached.")
-            #    os.system(cmd)
+                #if not CrossReached:
+                #CrossReached = 1
+                #print("Cross reached.")
+                #os.system(cmd)
 
     #Displays live video
     cv.imshow('frame',res)
-
+    
+    #Sends flag for no tape
     if xy[0] == 0 and xy[1] == 0:
         #print("Searching...")
         Turn= 1 #Continue turning till blue tape is found
         i2c.command(i2c.CMD_TAPE, 0)
-        
+
+    #Sends flag for tape on screen
     if abs(radians) < 0.4:
         #print("Turning Left")
         Turn = 2 #Continue turning left because tape is found
@@ -127,18 +140,18 @@ while True:
     else:
         i2c.command(i2c.CMD_TAPE,0)
     
-
+    #Gets the edge points of the tape
     if xy[0] == 0 and xy[1] == 0:
         Right = 0
         Max = 0
         Min = 0
     else:
         Y,X = np.nonzero(thresh1)
-        Right = np.amax(X,0)
+        Right = np.amax(X,0)        #Finds right edge of tape
         Max = np.amax(Y,0)          #Finds front edge of tape
-        Min = np.amin(Y,0)
+        Min = np.amin(Y,0)          #Finds back edge of tape
 
-    #timer for sending angle
+    #Timer for sending angle
     timer = time.perf_counter()
     if timer > timer_old+0.1:
        i2c.command(0x02, radians)
