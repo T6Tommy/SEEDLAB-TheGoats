@@ -9,7 +9,7 @@
 Encoder myEncR(3, 5);
 Encoder myEncL(2, 11);
 
-float l_offset_coeff = 0.15;
+float l_offset_coeff = 0.2;
 
 float magnitude_voltage = 0;  //Voltage magnitude, intended for moving the plant forward
 uint8_t motor_PWM = 0; //The unsigned integer to be sent to the PWM ports connected to the motors.
@@ -283,7 +283,7 @@ void transitions_init() {
 
 void update_motors(uint8_t mode, float voltage) {
   int pwm = float(voltage/v_max)*255;
-  uint8_t pwm_minimum = 25;
+  uint8_t pwm_minimum = 28;
   if(abs(pwm) < pwm_minimum && abs(pwm) > 0) pwm = (abs(pwm)/pwm)*pwm_minimum;
   //if(voltage > v_max) pwm = 255;
   //if(voltage < -(v_max)) pwm = -255;
