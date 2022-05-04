@@ -1,6 +1,6 @@
 # SEED Lab Group 7 - The Goats
 
-# Demo 2
+# Final Demonstration
 
 ## EENG 350 B, Spring 2022
 
@@ -16,4 +16,4 @@
 
 ### Directory Structure:
 
-This repository is for the second demonstration and is seperated into two main folders, "Arduino," which contains arduino sketches, and "rpi," which contains python code to be run on the Raspberry Pi.
+This repository is for the final demonstration and is seperated into two main folders, "Arduino," which contains arduino sketches, and "rpi," which contains python code to be run on the Raspberry Pi.
